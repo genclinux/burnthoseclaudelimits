@@ -99,9 +99,16 @@ class Path {
 
 enum class FontId { NASKH, NASKH_BOLD, RUQAA, KUFI, LATIN }
 
+/**
+ * How a layer combines with what's under it. MULTIPLY darkens like pigment or
+ * ink soaking into paper (watercolour washes, paper grain); SCREEN lightens like
+ * light or gold sheen.
+ */
+enum class Blend { NORMAL, MULTIPLY, SCREEN }
+
 sealed interface Item
 
-class FillItem(val path: Path, val fill: Fill, val alpha: Float = 1f) : Item
+class FillItem(val path: Path, val fill: Fill, val alpha: Float = 1f, val blend: Blend = Blend.NORMAL) : Item
 
 class StrokeItem(
     val path: Path,
@@ -109,6 +116,7 @@ class StrokeItem(
     val width: Float,
     val alpha: Float = 1f,
     val round: Boolean = true,
+    val blend: Blend = Blend.NORMAL,
 ) : Item
 
 /**
@@ -137,6 +145,25 @@ class TextItem(
     val inkCentered: Boolean = false,
 ) : Item
 
+/**
+ * A block of pixels (ARGB, not premultiplied), used for textures: paper grain,
+ * marbled paint, glaze. It is stretched over [left, top, right, bottom] with
+ * bilinear filtering; with [tiled] it repeats at [tileScale] px per pixel instead.
+ */
+class RasterItem(
+    val width: Int,
+    val height: Int,
+    val pixels: IntArray,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+    val alpha: Float = 1f,
+    val blend: Blend = Blend.NORMAL,
+    val tiled: Boolean = false,
+    val tileScale: Float = 1f,
+) : Item
+
 class GroupItem(val items: List<Item>, val clip: Path? = null, val alpha: Float = 1f) : Item
 
 class Scene(val width: Int, val height: Int, val items: List<Item>)
@@ -145,15 +172,20 @@ class Scene(val width: Int, val height: Int, val items: List<Item>)
 class SceneBuilder(val width: Int, val height: Int) {
     val items = ArrayList<Item>()
 
-    fun fill(path: Path, fill: Fill, alpha: Float = 1f) {
-        if (!path.isEmpty) items += FillItem(path, fill, alpha)
+    fun fill(path: Path, fill: Fill, alpha: Float = 1f, blend: Blend = Blend.NORMAL) {
+        if (!path.isEmpty) items += FillItem(path, fill, alpha, blend)
     }
 
-    fun fill(path: Path, color: Int, alpha: Float = 1f) = fill(path, SolidFill(color), alpha)
+    fun fill(path: Path, color: Int, alpha: Float = 1f, blend: Blend = Blend.NORMAL) =
+        fill(path, SolidFill(color), alpha, blend)
 
-    fun stroke(path: Path, color: Int, width: Float, alpha: Float = 1f, round: Boolean = true) {
-        if (!path.isEmpty) items += StrokeItem(path, SolidFill(color), width, alpha, round)
+    fun stroke(
+        path: Path, color: Int, width: Float, alpha: Float = 1f, round: Boolean = true, blend: Blend = Blend.NORMAL,
+    ) {
+        if (!path.isEmpty) items += StrokeItem(path, SolidFill(color), width, alpha, round, blend)
     }
+
+    fun raster(item: RasterItem) { items += item }
 
     fun text(item: TextItem) { items += item }
 

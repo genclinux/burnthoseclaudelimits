@@ -1,5 +1,6 @@
 package com.noor.wallpapers.preview
 
+import com.noor.wallpapers.art.Blend
 import com.noor.wallpapers.art.Colors
 import com.noor.wallpapers.art.Fill
 import com.noor.wallpapers.art.FillItem
@@ -9,6 +10,7 @@ import com.noor.wallpapers.art.Item
 import com.noor.wallpapers.art.LinearFill
 import com.noor.wallpapers.art.Path
 import com.noor.wallpapers.art.RadialFill
+import com.noor.wallpapers.art.RasterItem
 import com.noor.wallpapers.art.Scene
 import com.noor.wallpapers.art.SolidFill
 import com.noor.wallpapers.art.StrokeItem
@@ -22,6 +24,7 @@ import java.awt.LinearGradientPaint
 import java.awt.MultipleGradientPaint
 import java.awt.RadialGradientPaint
 import java.awt.RenderingHints
+import java.awt.TexturePaint
 import java.awt.font.TextAttribute
 import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
@@ -58,12 +61,12 @@ class Java2DRenderer(fontDir: File) {
     private fun draw(g: Graphics2D, item: Item, alpha: Float) {
         when (item) {
             is FillItem -> {
-                g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (item.alpha * alpha).coerceIn(0f, 1f))
+                g.composite = composite(item.blend, item.alpha * alpha)
                 g.paint = paint(item.fill)
                 g.fill(shape(item.path))
             }
             is StrokeItem -> {
-                g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (item.alpha * alpha).coerceIn(0f, 1f))
+                g.composite = composite(item.blend, item.alpha * alpha)
                 g.paint = paint(item.fill)
                 g.stroke = if (item.round) {
                     BasicStroke(item.width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
@@ -73,6 +76,19 @@ class Java2DRenderer(fontDir: File) {
                 g.draw(shape(item.path))
             }
             is TextItem -> drawText(g, item, alpha)
+            is RasterItem -> {
+                val img = BufferedImage(item.width, item.height, BufferedImage.TYPE_INT_ARGB)
+                img.setRGB(0, 0, item.width, item.height, item.pixels, 0, item.width)
+                g.composite = composite(item.blend, item.alpha * alpha)
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+                val r = java.awt.geom.Rectangle2D.Float(item.left, item.top, item.right - item.left, item.bottom - item.top)
+                if (item.tiled) {
+                    g.paint = TexturePaint(img, java.awt.geom.Rectangle2D.Float(0f, 0f, item.width * item.tileScale, item.height * item.tileScale))
+                    g.fill(r)
+                } else {
+                    g.drawImage(img, item.left.toInt(), item.top.toInt(), (item.right - item.left).toInt(), (item.bottom - item.top).toInt(), null)
+                }
+            }
             is GroupItem -> {
                 val oldClip = g.clip
                 item.clip?.let { g.clip(shape(it)) }
@@ -149,6 +165,10 @@ class Java2DRenderer(fontDir: File) {
         if (maxX < 0) return floatArrayOf(0f, -size, advance.toFloat(), size)
         return floatArrayOf(minX - ox, minY - oy, (maxX + 1 - minX).toFloat(), (maxY + 1 - minY).toFloat())
     }
+
+    private fun composite(blend: Blend, a: Float): java.awt.Composite =
+        if (blend == Blend.NORMAL) AlphaComposite.getInstance(AlphaComposite.SRC_OVER, a.coerceIn(0f, 1f))
+        else BlendComposite(blend, a.coerceIn(0f, 1f))
 
     private fun color(c: Int) = Color(Colors.red(c), Colors.green(c), Colors.blue(c), Colors.alpha(c))
 

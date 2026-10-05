@@ -7,6 +7,7 @@ enum class Category(val title: String, val arabic: String) {
     NIGHT("Gece Camileri", "ليل"),
     RAMADAN("Ramazan ve Bayram", "رمضان"),
     MIHRAB("Mihrap", "محراب"),
+    EBRU("Ebru", "ابری"),
 }
 
 /**
@@ -126,7 +127,27 @@ object Catalog {
         add(mihrab("mihrab-iznik", "İznik Çinileri", "iznik", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.OCTAGON_SQUARE))
         add(mihrab("mihrab-emerald", "Zümrüt Mihrap", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, Tiling.HEXAGON))
         add(mihrab("mihrab-lapis", "Lâcivert Mihrap", "lapis", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, Tiling.DODECAGON_HEXAGON_SQUARE))
+
+        addAll(ebruEntries())
     }
+
+    private fun ebru(id: String, title: String, palette: String, style: Ebru.Style, seed: Int) =
+        Entry(id, title, Category.EBRU, pal(palette), seed) { ctx -> EbruArt.scene(ctx, EbruArt.Params(style)) }
+
+    private fun ebruEntries() = listOf(
+        ebru("ebru-battal-klasik", "Battal Ebru", "emerald", Ebru.Style.BATTAL, 3),
+        ebru("ebru-gelgit-deniz", "Gelgit · Deniz", "lapis", Ebru.Style.GELGIT, 5),
+        ebru("ebru-sal-iznik", "Şal Ebru · İznik", "iznik", Ebru.Style.SAL, 8),
+        ebru("ebru-tarakli-toprak", "Taraklı · Toprak", "sand", Ebru.Style.TARAKLI, 11),
+        ebru("ebru-bulbul-gul", "Bülbül Yuvası · Gül", "betul", Ebru.Style.BULBUL_YUVASI, 4),
+        ebru("ebru-battal-gece", "Battal · Gece", "onyx", Ebru.Style.BATTAL, 21),
+        ebru("ebru-sal-isfahan", "Şal · İsfahan", "isfahan", Ebru.Style.SAL, 13),
+        ebru("ebru-gelgit-elhamra", "Gelgit · Elhamra", "alhambra", Ebru.Style.GELGIT, 17),
+        ebru("ebru-bulbul-lacivert", "Bülbül Yuvası · Lâcivert", "lapis", Ebru.Style.BULBUL_YUVASI, 9),
+        ebru("ebru-tarakli-ametist", "Taraklı · Ametist", "amethyst", Ebru.Style.TARAKLI, 6),
+        ebru("ebru-battal-betul", "Betül'ün Ebrusu", "betul", Ebru.Style.BATTAL, 12),
+        ebru("ebru-sal-zumrut", "Şal · Zümrüt", "emerald", Ebru.Style.SAL, 15),
+    )
 
     fun byId(id: String) = entries.firstOrNull { it.id == id }
 }

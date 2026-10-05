@@ -2,14 +2,19 @@ package com.noor.wallpapers.wallpaper
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.BlendMode
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RadialGradient
+import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import com.noor.wallpapers.art.Blend
 import com.noor.wallpapers.art.Colors
 import com.noor.wallpapers.art.Fill
 import com.noor.wallpapers.art.FillItem
@@ -19,6 +24,7 @@ import com.noor.wallpapers.art.Item
 import com.noor.wallpapers.art.LinearFill
 import com.noor.wallpapers.art.Path
 import com.noor.wallpapers.art.RadialFill
+import com.noor.wallpapers.art.RasterItem
 import com.noor.wallpapers.art.Scene
 import com.noor.wallpapers.art.SolidFill
 import com.noor.wallpapers.art.StrokeItem
@@ -46,11 +52,13 @@ class AndroidRenderer(context: Context) {
         when (item) {
             is FillItem -> {
                 reset(item.fill, item.alpha * alpha)
+                paint.blendMode = item.blend.toAndroid()
                 paint.style = Paint.Style.FILL
                 canvas.drawPath(item.path.toAndroid(), paint)
             }
             is StrokeItem -> {
                 reset(item.fill, item.alpha * alpha)
+                paint.blendMode = item.blend.toAndroid()
                 paint.style = Paint.Style.STROKE
                 paint.strokeWidth = item.width
                 paint.strokeCap = if (item.round) Paint.Cap.ROUND else Paint.Cap.BUTT
@@ -58,6 +66,7 @@ class AndroidRenderer(context: Context) {
                 canvas.drawPath(item.path.toAndroid(), paint)
             }
             is TextItem -> drawText(canvas, item, alpha)
+            is RasterItem -> drawRaster(canvas, item, alpha)
             is GroupItem -> {
                 val save = canvas.save()
                 item.clip?.let { canvas.clipPath(it.toAndroid()) }
@@ -65,6 +74,30 @@ class AndroidRenderer(context: Context) {
                 canvas.restoreToCount(save)
             }
         }
+    }
+
+    private fun drawRaster(canvas: Canvas, r: RasterItem, alpha: Float) {
+        val bmp = Bitmap.createBitmap(r.pixels, r.width, r.height, Bitmap.Config.ARGB_8888)
+        val p = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG)
+        p.alpha = (255 * (alpha * r.alpha).coerceIn(0f, 1f)).toInt()
+        p.blendMode = r.blend.toAndroid()
+        val dst = RectF(r.left, r.top, r.right, r.bottom)
+        if (r.tiled) {
+            p.shader = BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT).apply {
+                setLocalMatrix(Matrix().apply { setScale(r.tileScale, r.tileScale) })
+            }
+            canvas.drawRect(dst, p)
+        } else {
+            canvas.drawBitmap(bmp, null, dst, p)
+        }
+        // A hardware canvas draws later, so the bitmap must outlive this call there.
+        if (!canvas.isHardwareAccelerated) bmp.recycle()
+    }
+
+    private fun Blend.toAndroid(): BlendMode = when (this) {
+        Blend.NORMAL -> BlendMode.SRC_OVER
+        Blend.MULTIPLY -> BlendMode.MULTIPLY
+        Blend.SCREEN -> BlendMode.SCREEN
     }
 
     private fun drawText(canvas: Canvas, t: TextItem, alpha: Float) {
