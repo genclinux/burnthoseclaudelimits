@@ -58,8 +58,12 @@ wallpaper redraws itself for each orientation.
 | **Night Mosques** | Procedural Ottoman, Persian and Mughal mosque silhouettes under night, dusk or dawn skies. Lit windows, a crescent moon, and optional reflections in water. |
 | **Ramazan ve Bayram** | Hanging fanous lanterns, a crescent, and رمضان كريم / عيد مبارك calligraphy captioned *Hayırlı Ramazanlar* / *Bayramınız Mübarek Olsun*. |
 | **Mihrab** | A tiled wall with a gilded pointed arch, a Bismillah inscription and a glowing Mamluk glass lamp. |
+| **Ebru** | Turkish paper marbling, simulated the way a marbler works the tray: drops spreading on size water, then the stylus and comb. Battal, Gelgit, Şal, Taraklı and Bülbül yuvası, in hand-mixed pigment sets. |
+| **Levha** | Hat levhası: ink calligraphy on aged ahar paper with gold cetvel rules, gilded corner pieces, an ebru margin and a red seal with Hanife Betül's initials. Gold-on-black *zerendüd* in the Onyx palette. |
+| **Suluboya** | Watercolour İstanbul mosque paintings: dawn, sunset, crescent night, mist, rain, snow, tulips, and a Kandil night with lit minarets. |
+| **Çini** | Hand-painted İznik tiles: vase panels, tulip, carnation, saz and rumi repeats, with glaze, grout and imperfections. |
 
-There are 44 designs, and each can use any of the **9 palettes**: Hanife Betül,
+There are 88 designs, and each can use any of the **9 palettes**: Hanife Betül,
 Zümrüt ve Altın, Gece Lâciverdi, İznik Turkuazı, Çöl Kumu, İsfahan Gülü,
 Elhamra Kiremidi, Oniks ve İnci (true black for OLED) and Saray Ametisti.
 **Shuffle**
