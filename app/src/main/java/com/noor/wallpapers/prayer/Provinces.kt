@@ -122,6 +122,15 @@ object Provinces {
     /** Roughly inside Türkiye's borders: decides whether a GPS fix should use the province table. */
     fun isInTurkey(lat: Double, lon: Double) = lat in 35.8..42.2 && lon in 25.6..44.9
 
+    /**
+     * Pendik, İstanbul: the app's home until she picks another place. Diyanet's
+     * ids are looked up by name on the first fetch.
+     */
+    val PENDIK = PrayerLocation(
+        countryId = null, country = "Türkiye", cityId = null, city = "İstanbul",
+        districtId = null, district = "Pendik", latitude = 40.8769, longitude = 29.2346, zoneId = TURKEY_ZONE,
+    )
+
     fun location(p: Province) = PrayerLocation(
         countryId = null, country = "Türkiye", cityId = null, city = p.name,
         districtId = null, district = p.name, latitude = p.latitude, longitude = p.longitude, zoneId = TURKEY_ZONE,

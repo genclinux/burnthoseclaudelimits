@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,10 +40,12 @@ import androidx.compose.ui.platform.LocalContext
 import com.noor.wallpapers.art.Catalog
 import com.noor.wallpapers.art.Category
 import com.noor.wallpapers.art.Palette
+import com.noor.wallpapers.prayer.Provinces
 import com.noor.wallpapers.service.AppSettings
 import com.noor.wallpapers.service.Background
 import com.noor.wallpapers.service.Notifications
 import com.noor.wallpapers.service.PrayerAlarms
+import com.noor.wallpapers.service.PrayerRepository
 import com.noor.wallpapers.service.PrayerWidget
 import com.noor.wallpapers.service.Work
 import com.noor.wallpapers.ui.CalendarScreen
@@ -77,6 +80,11 @@ class MainActivity : ComponentActivity() {
 
         // Keep alarms, the widget and background refresh in step with whatever changed while closed.
         val app = applicationContext
+        // No location prompt: start in Pendik, İstanbul (changeable in Ayarlar).
+        if (AppSettings(app).location == null) {
+            PrayerRepository.setLocation(app, Provinces.PENDIK)
+            Work.refreshNow(app)
+        }
         Notifications.ensureChannels(app)
         Work.ensure(app)
         Background.executor.execute {
@@ -97,8 +105,8 @@ class MainActivity : ComponentActivity() {
 }
 
 private enum class Tab(val key: String, val title: String) {
-    PRAYER(MainActivity.TAB_PRAYER, "Vakitler"),
     GALLERY("galeri", "Galeri"),
+    PRAYER(MainActivity.TAB_PRAYER, "Vakitler"),
     QIBLA("kible", "Kıble"),
     TESBIH("zikir", "Zikir"),
     CALENDAR("takvim", "Takvim"),
@@ -126,7 +134,7 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
     val theme = remember(themeId) { themeId?.let(Palette::byId) }
 
     NoorTheme(theme) {
-        var tab by rememberSaveable { mutableStateOf(Tab.PRAYER) }
+        var tab by rememberSaveable { mutableStateOf(Tab.GALLERY) }
         var category by rememberSaveable { mutableStateOf<Category?>(null) }
         var favoritesOnly by rememberSaveable { mutableStateOf(false) }
         var favorites by remember { mutableStateOf(prefs.favorites) }
@@ -192,7 +200,7 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
 
         val open = Selection.decode(openEncoded)
         BackHandler(enabled = open != null) { openEncoded = null }
-        BackHandler(enabled = open == null && tab != Tab.PRAYER) { tab = Tab.PRAYER }
+        BackHandler(enabled = open == null && tab != Tab.GALLERY) { tab = Tab.GALLERY }
 
         if (open != null) {
             DetailScreen(
@@ -226,7 +234,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                     }
                 },
             ) { padding ->
-                Box(Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()).consumeWindowInsets(padding)) {
+                // Only the bottom is taken by the navigation bar; each screen still pads for the status bar itself.
+                val bottom = PaddingValues(bottom = padding.calculateBottomPadding())
+                Box(Modifier.fillMaxSize().padding(bottom).consumeWindowInsets(bottom)) {
                     AnimatedContent(tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { t ->
                         when (t) {
                             Tab.PRAYER -> PrayerScreen(

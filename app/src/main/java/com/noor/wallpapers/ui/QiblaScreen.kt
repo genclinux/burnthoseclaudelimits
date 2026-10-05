@@ -76,21 +76,8 @@ private class Heading(val degrees: Float, val unreliable: Boolean)
 @Composable
 fun QiblaScreen(onMessage: (String) -> Unit) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val schedule = rememberSchedule()
-    var gps by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    var finding by remember { mutableStateOf(false) }
-    val place = gps ?: schedule?.location?.let { l -> if (l.hasCoordinates) l.latitude!! to l.longitude!! else null }
-
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        if (grants.values.any { it }) {
-            scope.launch {
-                finding = true
-                LocationFinder.current(context)?.let { gps = it.latitude to it.longitude } ?: onMessage("Konum alınamadı")
-                finding = false
-            }
-        }
-    }
+    val place = schedule?.location?.let { l -> if (l.hasCoordinates) l.latitude!! to l.longitude!! else null }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
@@ -106,12 +93,10 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
             if (place == null) {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Kıbleyi bulmak için konum gerekiyor. Vakitler sekmesinde bir yer seç ya da konumunu kullan.",
+                    "Kıble için bir yer gerekiyor; Vakitler sekmesindeki Ayarlar'dan seçebilirsin.",
                     textAlign = TextAlign.Center,
                 )
-                OutlinedButton(onClick = {
-                    permission.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
-                }) { Text(if (finding) "Konum bulunuyor…" else "Konumumu kullan") }
+
             } else {
                 val (lat, lon) = place
                 val bearing = remember(place) { Qibla.bearing(lat, lon) }
@@ -123,7 +108,7 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
                 )
                 Text(
                     "Kâbe'ye ${"%,d".format(TurkishText.TR, distance.toLong())} km · " +
-                        (if (gps != null) "konumun" else schedule?.location?.label ?: ""),
+                        (schedule?.location?.label ?: ""),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 schedule?.day(schedule.today(java.time.Instant.now()))?.qiblaTime?.let { q ->
@@ -132,11 +117,7 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
                         "Pusula şaşırırsa: bugün ${TurkishText.at(q)} güneş tam kıble yönündedir. O an güneşe dönen kıbleye dönmüş olur.",
                     )
                 }
-                if (gps == null) {
-                    OutlinedButton(onClick = {
-                        permission.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
-                    }) { Text(if (finding) "Konum bulunuyor…" else "Tam konumumla hesapla") }
-                }
+
                 Text(
                     "Telefonu yere paralel tut, metal ve mıknatıslardan uzak dur. Kâbe simgesi üstteki işarete gelince kıbleye dönmüşsün demektir.",
                     style = MaterialTheme.typography.bodySmall,
