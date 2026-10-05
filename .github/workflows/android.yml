@@ -6,12 +6,20 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Publish a GitHub Release with this tag, e.g. v1.0.0 (leave empty for a plain build)"
+        required: false
+        default: ""
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      # Set by pushing a v* tag, or by running the workflow by hand with release_tag.
+      RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
     steps:
       - uses: actions/checkout@v5
 
@@ -43,20 +51,23 @@ jobs:
           name: hbsnoor-previews
           path: tools/preview/build/previews/*.png
 
-      # Pushing a tag like v1.0.0 publishes the APK as a GitHub Release.
+      # Publishes the APK as a GitHub Release (creating the tag if needed).
       - name: Name release APK
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: cp app/build/outputs/apk/release/app-release.apk "HBSnoor-${GITHUB_REF_NAME}.apk"
+        if: env.RELEASE_TAG != ''
+        run: cp app/build/outputs/apk/release/app-release.apk "HBSnoor-${RELEASE_TAG}.apk"
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.RELEASE_TAG != ''
         uses: softprops/action-gh-release@v2
         with:
-          name: HBSnoor ${{ github.ref_name }}
-          files: HBSnoor-${{ github.ref_name }}.apk
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: HBSnoor ${{ env.RELEASE_TAG }}
+          make_latest: true
+          files: HBSnoor-${{ env.RELEASE_TAG }}.apk
           body: |
             **HBSnoor**: İslami duvar kağıtları, Hanife Betül için 🌙
 
-            **Kurulum:** `HBSnoor-${{ github.ref_name }}.apk` dosyasını tablete indirip açın. Sorulursa "bilinmeyen uygulamaları yükle" iznini verin.
+            **Kurulum:** `HBSnoor-${{ env.RELEASE_TAG }}.apk` dosyasını tablete indirip açın. Sorulursa "bilinmeyen uygulamaları yükle" iznini verin.
 
             Samsung Galaxy Tab S9 FE için ayarlandı; Android 10 ve üzeri her telefon ve tablette çalışır.

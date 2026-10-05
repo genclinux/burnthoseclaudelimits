@@ -83,7 +83,8 @@ when asked. Every release is signed with the same key, so newer versions
 install as updates.
 
 To cut a new release, bump `versionCode`/`versionName` in `app/build.gradle.kts`
-and push a tag: `git tag v1.0.1 && git push origin v1.0.1`.
+and either push a tag (`git tag v1.0.1 && git push origin v1.0.1`) or run the
+**Android build** workflow by hand from the Actions tab with `release_tag` set to `v1.0.1`.
 
 Builds from other pushes are also available as CI artifacts:
 
