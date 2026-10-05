@@ -77,8 +77,18 @@ On the detail screen you can:
 
 ## Install
 
+**Download the APK from [Releases](https://github.com/genclinux/burnthoseclaudelimits/releases/latest)**
+(`HBSnoor-v1.0.0.apk`), open it on the tablet, and allow *Install unknown apps*
+when asked. Every release is signed with the same key, so newer versions
+install as updates.
+
+To cut a new release, bump `versionCode`/`versionName` in `app/build.gradle.kts`
+and push a tag: `git tag v1.0.1 && git push origin v1.0.1`.
+
+Builds from other pushes are also available as CI artifacts:
+
 Every push builds an APK in GitHub Actions (**Actions → Android build →
-`noor-apk` artifact**). `app-release.apk` is minified and signed with the
+`hbsnoor-apk` artifact**). `app-release.apk` is minified and signed with the
 debug key, so it installs directly:
 
 1. On the Find X9 Pro, open the APK and allow *Install unknown apps* for your

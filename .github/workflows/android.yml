@@ -3,12 +3,15 @@ name: Android build
 on:
   push:
     branches: [main, "claude/**"]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -30,12 +33,30 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: noor-apk
+          name: hbsnoor-apk
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/debug/app-debug.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: noor-previews
+          name: hbsnoor-previews
           path: tools/preview/build/previews/*.png
+
+      # Pushing a tag like v1.0.0 publishes the APK as a GitHub Release.
+      - name: Name release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: cp app/build/outputs/apk/release/app-release.apk "HBSnoor-${GITHUB_REF_NAME}.apk"
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HBSnoor ${{ github.ref_name }}
+          files: HBSnoor-${{ github.ref_name }}.apk
+          body: |
+            **HBSnoor**: İslami duvar kağıtları, Hanife Betül için 🌙
+
+            **Kurulum:** `HBSnoor-${{ github.ref_name }}.apk` dosyasını tablete indirip açın. Sorulursa "bilinmeyen uygulamaları yükle" iznini verin.
+
+            Samsung Galaxy Tab S9 FE için ayarlandı; Android 10 ve üzeri her telefon ve tablette çalışır.
