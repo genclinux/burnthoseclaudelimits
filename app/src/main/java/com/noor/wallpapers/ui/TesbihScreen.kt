@@ -1,5 +1,8 @@
 package com.noor.wallpapers.ui
 
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -231,9 +234,21 @@ fun TesbihScreen(onMessage: (String) -> Unit, onOpenSettings: () -> Unit) {
                         .padding(horizontal = 24.dp)
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = ::increment),
                 ) {
-                    Beads(count, current.target, Modifier.fillMaxWidth().aspectRatio(1f))
+                    // Each count gives the beads a small tug.
+                    val tug = remember { Animatable(1f) }
+                    LaunchedEffect(count) {
+                        if (count > 0) {
+                            tug.snapTo(1.035f)
+                            tug.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 600f))
+                        }
+                    }
+                    Beads(count, current.target, Modifier.fillMaxWidth().aspectRatio(1f).graphicsLayer { scaleX = tug.value; scaleY = tug.value })
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$count", fontSize = 72.sp, fontWeight = FontWeight.Light, style = MaterialTheme.typography.displayLarge.copy(fontFeatureSettings = Tabular))
+                        RollingText(
+                            "$count",
+                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp, fontWeight = FontWeight.Light, fontFeatureSettings = Tabular),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                         val sub = when {
                             tesbihat -> "${step + 1}. / 3 · 33"
                             current.target > 0 -> "${count / current.target}. tur · hedef ${current.target}"

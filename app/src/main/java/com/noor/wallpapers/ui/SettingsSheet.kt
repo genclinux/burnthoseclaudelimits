@@ -10,6 +10,11 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -62,6 +67,7 @@ import com.noor.wallpapers.art.Palette
 import com.noor.wallpapers.prayer.OverlayPosition
 import com.noor.wallpapers.prayer.OverlayStyle
 import com.noor.wallpapers.prayer.Prayer
+import com.noor.wallpapers.service.AppIcons
 import com.noor.wallpapers.service.AppSettings
 import com.noor.wallpapers.service.Background
 import com.noor.wallpapers.service.DailySource
@@ -104,6 +110,7 @@ fun SettingsSheet(
     var target by remember { mutableStateOf(s.dailyTarget) }
     var theme by remember { mutableStateOf(s.themePalette) }
     var rotating by remember { mutableStateOf(RotationAlarms.active(context)) }
+    var appIcon by remember { mutableStateOf(AppIcons.current(context)) }
     val canExact = remember(resumed) { PrayerAlarms.canExact(context) }
     val permitted = remember(resumed) { Notifications.permitted(context) }
 
@@ -264,6 +271,31 @@ fun SettingsSheet(
 
         SectionTitle("Görünüm")
         NoorCard {
+            FieldLabel("Uygulama simgesi")
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                for (icon in AppIcons.Icon.entries) {
+                    val chosen = icon == appIcon
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            Modifier
+                                .size(56.dp)
+                                .clip(Noor.Tile)
+                                .background(Brush.radialGradient(listOf(Color(icon.bg.first), Color(icon.bg.second))))
+                                .border(if (chosen) 3.dp else 0.dp, if (chosen) MaterialTheme.colorScheme.primary else Color.Transparent, Noor.Tile)
+                                .clickable {
+                                    if (!chosen) {
+                                        AppIcons.set(context, icon)
+                                        appIcon = icon
+                                        onMessage("Simge değişti; ana ekranda birkaç saniye içinde görünür ✨")
+                                    }
+                                },
+                        ) {
+                            Image(painterResource(icon.fg), contentDescription = icon.title, modifier = Modifier.fillMaxSize())
+                        }
+                        Text(icon.title, style = MaterialTheme.typography.labelSmall, color = if (chosen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
             FieldLabel("Uygulamanın renkleri")
             val palettes = remember { listOf<Palette?>(null) + Palette.ALL.filter { it.id != "emerald" } + s.customPalettes.map { Palette.byId(it) } }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -312,7 +344,7 @@ fun SettingsSheet(
             "Vakitler: T.C. Diyanet İşleri Başkanlığı (ezanvakti hizmeti aracılığıyla). İnternet yokken vakitler Diyanet " +
                 "yöntemiyle hesaplanır ve Diyanet'in tablosuyla karşılaştırılarak düzeltilir.\n" +
                 "Gerçek Camiler: Wikimedia Commons; her fotoğraf kendi fotoğrafçısının özgür lisansıyla (CC BY, CC BY-SA, CC0).\n" +
-                "HBSnoor · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
+                "noor by HBS · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
             Modifier.padding(top = 8.dp),
         )
     }

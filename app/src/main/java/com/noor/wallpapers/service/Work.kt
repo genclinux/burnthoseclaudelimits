@@ -119,7 +119,7 @@ class DailyWallpaperWorker(context: Context, params: WorkerParameters) : Corouti
     private fun pick(ctx: Context, s: AppSettings, today: LocalDate): Selection? {
         val prefs = Prefs(ctx)
         if (s.birthday == MonthDay.from(today)) Catalog.byId(Catalog.BIRTHDAY)?.let { return Selection.of(it) }
-        val visible = Catalog.visible(s.secretUnlocked)
+        val visible = Catalog.visible(s.secretUnlocked, s.birthNightUnlocked)
         val pool = when (s.dailySource) {
             DailySource.FAVORITES -> visible.filter { it.id in prefs.favorites }
                 .ifEmpty { visible.filter { it.category == Category.HANIFE_BETUL } }

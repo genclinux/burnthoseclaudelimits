@@ -2,6 +2,7 @@ package com.noor.wallpapers.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,14 +45,16 @@ import com.noor.wallpapers.prayer.HijriCalendar
 import com.noor.wallpapers.prayer.HolyDayEvent
 import com.noor.wallpapers.prayer.ReligiousDays
 import com.noor.wallpapers.prayer.TurkishText
+import com.noor.wallpapers.service.AppSettings
 import com.noor.wallpapers.service.PrayerRepository
 import java.time.LocalDate
+import java.time.MonthDay
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
 /** Takvim: today's Hijri date, a month with Hijri days beneath, and Diyanet's religious days for a year. */
 @Composable
-fun CalendarScreen(onOpenSettings: () -> Unit) {
+fun CalendarScreen(onOpenSettings: () -> Unit, onBirthday: () -> Unit = {}) {
     val context = LocalContext.current
     val v = rememberSettingsVersion()
     val hijri = remember(v) { PrayerRepository.hijri(context) }
@@ -60,6 +63,7 @@ fun CalendarScreen(onOpenSettings: () -> Unit) {
     var month by remember { mutableStateOf(YearMonth.from(today)) }
     val year = remember(today, hijri) { ReligiousDays.between(today, today.plusYears(1), hijri) }
     val amiri = rememberAmiri()
+    val birthday = remember(v) { AppSettings(context).birthday }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -89,7 +93,13 @@ fun CalendarScreen(onOpenSettings: () -> Unit) {
             }
 
             Spacer(Modifier.height(16.dp))
-            MonthGrid(month, today, hijri, year, onPrev = { month = month.minusMonths(1) }, onNext = { month = month.plusMonths(1) })
+            MonthGrid(
+                month, today, hijri, year, birthday,
+                onPrev = { month = month.minusMonths(1) },
+                onNext = { month = month.plusMonths(1) },
+                // Easter egg: her birthday opens "Doğduğun gün".
+                onDay = { d -> if (birthday != null && MonthDay.from(d) == birthday) onBirthday() },
+            )
 
             Spacer(Modifier.height(20.dp))
             SectionTitle("Dini günler", Modifier.fillMaxWidth())
@@ -115,8 +125,10 @@ private fun MonthGrid(
     today: LocalDate,
     hijri: HijriCalendar,
     events: List<HolyDayEvent>,
+    birthday: MonthDay?,
     onPrev: () -> Unit,
     onNext: () -> Unit,
+    onDay: (LocalDate) -> Unit,
 ) {
     val first = month.atDay(1)
     val lead = first.dayOfWeek.value - 1 // Monday first, as in Türkiye.
@@ -169,7 +181,8 @@ private fun MonthGrid(
                                     .fillMaxSize()
                                     .clip(MaterialTheme.shapes.small)
                                     .background(if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent)
-                                    .then(if (isSpecial) Modifier.border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
+                                    .then(if (isSpecial) Modifier.border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
+                                    .clickable { onDay(date) },
                             ) {
                                 Text(
                                     "${index + 1}",
@@ -177,7 +190,14 @@ private fun MonthGrid(
                                     lineHeight = 18.sp,
                                     color = if (date.dayOfWeek.value == 5) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 )
-                                Text("${hijri.of(date).day}", fontSize = 10.sp, lineHeight = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                // Her birthday carries a tiny heart instead of the Hijri day: the only hint.
+                                val hers = birthday != null && MonthDay.from(date) == birthday
+                                Text(
+                                    if (hers) "♡" else "${hijri.of(date).day}",
+                                    fontSize = 10.sp,
+                                    lineHeight = 12.sp,
+                                    color = if (hers) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }

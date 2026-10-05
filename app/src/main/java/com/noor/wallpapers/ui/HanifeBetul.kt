@@ -50,7 +50,7 @@ import java.time.LocalDateTime
 import java.time.MonthDay
 
 /**
- * Everything personal in the app. HBSnoor was made for Hanife Betül, and these
+ * Everything personal in the app. noor by HBS was made for Hanife Betül, and these
  * easter eggs are meant to be found; the dedication page keeps count. The art
  * has its own: an "HB" constellation in every night sky, a tiny H·B star at the
  * foot of every wallpaper, a ح ب seal on every levha, her own collection and
@@ -236,7 +236,7 @@ object HanifeBetul {
     enum class Surprise(val title: String, val hint: String) {
         WELCOME("Hoş geldin notu", "Uygulamayı ilk kez aç."),
         DEDICATION("Ad sayfası", "✦ simgesine dokun."),
-        TITLE_TAPS("Beş dokunuş", "Galerideki HBSnoor yazısına art arda dokun."),
+        TITLE_TAPS("Beş dokunuş", "Galeri başlığına art arda dokun."),
         SHUFFLE("Yedinci karıştırma", "Bir tasarımı defalarca karıştır."),
         APPLIED("Yeni duvar kağıdı", "Bir tasarımı duvar kağıdı yap."),
         EMPTY_FAVORITES("Boş favoriler", "Hiç favorin yokken favorilere bak."),
@@ -251,6 +251,7 @@ object HanifeBetul {
         OWN_WORDS("Kendi sözün", "Kendi Sözün tasarımına bir şey yaz."),
         THEME("Betül teması", "✦ simgesine uzun bas."),
         TESBIHAT("Tesbihat", "Zikirmatikte tesbihatı sonuna kadar çek."),
+        BIRTH_NIGHT("Doğduğun gece", "Takvimde doğduğun güne dokun."),
     }
 
     /**
@@ -281,7 +282,7 @@ fun WelcomeDialog(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
         },
         text = {
             Text(
-                "HBSnoor senin için yapıldı. Artık yalnızca duvar kağıdı değil: Diyanet'in namaz vakitleri, " +
+                "noor by HBS senin için yapıldı. Artık yalnızca duvar kağıdı değil: Diyanet'in namaz vakitleri, " +
                     "vakit bildirimleri, kıble pusulası, zikirmatik ve dini günler de burada. İçinde sana özel bir " +
                     "koleksiyon, adını taşıyan bir renk paleti ve her köşeye saklanmış sürprizler var. " +
                     "✦ sayfası kaç tanesini bulduğunu sayıyor. ✨",
@@ -292,7 +293,7 @@ fun WelcomeDialog(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-/** Opened from the ✦ button or by tapping the "HBSnoor" title five times. */
+/** Opened from the ✦ button or by tapping the Galeri title five times. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DedicationSheet(onOpenCollection: () -> Unit, onDismiss: () -> Unit, onThemeChanged: () -> Unit) {

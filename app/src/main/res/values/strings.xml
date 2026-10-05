@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">HBSnoor</string>
-    <string name="live_wallpaper_name">HBSnoor Canlı</string>
-    <string name="live_wallpaper_description">Hanife Betül için: yavaşça parıldayan yıldızlar, arada bir kayan yıldız ve istersen namaz vakitleri. Tasarımı HBSnoor uygulamasından seç.</string>
+    <string name="app_name">noor by HBS</string>
+    <string name="live_wallpaper_name">noor by HBS · Canlı</string>
+    <string name="live_wallpaper_description">Hanife Betül için: yavaşça parıldayan yıldızlar, arada bir kayan yıldız ve istersen namaz vakitleri. Tasarımı noor by HBS uygulamasından seç.</string>
     <string name="widget_name">Namaz Vakitleri</string>
     <string name="widget_description">Sıradaki vakit, kalan süre ve günün altı vakti; arkasında seçtiğin tasarım.</string>
     <string name="widget_remaining">kalan</string>

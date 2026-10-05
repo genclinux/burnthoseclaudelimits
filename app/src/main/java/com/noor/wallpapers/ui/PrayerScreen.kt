@@ -1,6 +1,7 @@
 package com.noor.wallpapers.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -248,19 +249,15 @@ private fun Content(
             if (next != null) {
                 val left = Duration.between(now, next.instant)
                 Text("Sıradaki vakit", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.CenterHorizontally))
-                Text(
-                    next.prayer.title,
-                    color = Color.White,
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Light,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-                Text(
+                // When a time comes in, the next one's name fades in.
+                Crossfade(next.prayer.title, animationSpec = Motion.fade(), label = "next", modifier = Modifier.align(Alignment.CenterHorizontally)) { t ->
+                    Text(t, color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Light)
+                }
+                // The seconds roll over like a flip clock.
+                RollingText(
                     TurkishText.clock(left),
+                    style = MaterialTheme.typography.displayMedium.copy(fontSize = 56.sp, fontWeight = FontWeight.SemiBold, fontFeatureSettings = Tabular),
                     color = MaterialTheme.colorScheme.primary,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = Tabular),
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
                 Text(

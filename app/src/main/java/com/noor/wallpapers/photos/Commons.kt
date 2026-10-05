@@ -63,7 +63,7 @@ data class Photo(
  */
 object Commons {
     const val API = "https://commons.wikimedia.org/w/api.php"
-    const val USER_AGENT = "HBSnoor/1.2 (https://github.com/genclinux/burnthoseclaudelimits; Android wallpaper app)"
+    const val USER_AGENT = "noorbyHBS/2.1 (https://github.com/genclinux/burnthoseclaudelimits; Android wallpaper app)"
 
     private const val QUALITY = "Category:Quality images"
     private const val VALUED = "Category:Valued images"

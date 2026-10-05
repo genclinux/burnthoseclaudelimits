@@ -9,6 +9,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -51,6 +53,7 @@ import com.noor.wallpapers.service.PrayerWidget
 import com.noor.wallpapers.service.RotationAlarms
 import com.noor.wallpapers.service.RotationSchedule
 import com.noor.wallpapers.service.Work
+import com.noor.wallpapers.ui.BirthNightSheet
 import com.noor.wallpapers.ui.CalendarScreen
 import com.noor.wallpapers.ui.DedicationSheet
 import com.noor.wallpapers.ui.DetailScreen
@@ -60,6 +63,7 @@ import com.noor.wallpapers.ui.LocationPicker
 import com.noor.wallpapers.ui.PhotoDetailScreen
 import com.noor.wallpapers.ui.PhotoGrid
 import com.noor.wallpapers.ui.NoorIcons
+import com.noor.wallpapers.ui.Motion
 import com.noor.wallpapers.ui.NoorTheme
 import com.noor.wallpapers.ui.PrayerScreen
 import com.noor.wallpapers.ui.QiblaScreen
@@ -75,6 +79,7 @@ import com.noor.wallpapers.wallpaper.Wallpapers
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.MonthDay
 
 class MainActivity : ComponentActivity() {
     /** Tab requested by a notification or the widget. */
@@ -140,7 +145,7 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
     val prefs = remember { Prefs(context) }
     val settings = remember { AppSettings(context) }
     // Only the settings this level shows; a tesbih tap must not recompose the whole app.
-    val version = rememberSettingsVersion(setOf(AppSettings.KEY_THEME, AppSettings.KEY_SECRET))
+    val version = rememberSettingsVersion(setOf(AppSettings.KEY_THEME, AppSettings.KEY_SECRET, AppSettings.KEY_SURPRISES))
     var themeVersion by remember { mutableIntStateOf(0) }
     // Keyed on the id so unrelated setting changes (every tesbih tap) don't rebuild the theme.
     val themeId = remember(themeVersion, version) { settings.themePalette }
@@ -161,6 +166,8 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         var dedication by rememberSaveable { mutableStateOf(false) }
         var picking by rememberSaveable { mutableStateOf(false) }
         var settingsOpen by rememberSaveable { mutableStateOf(false) }
+        // Easter egg: "Doğduğun gün", from Takvim or by itself on her birthday.
+        var birthSheet by rememberSaveable { mutableStateOf(false) }
         // "Yeni": features she hasn't been told about. A first install only hears about this version's.
         val firstInstall = remember { !prefs.welcomed }
         var news by remember { mutableStateOf(WhatsNew.toShow(prefs.seenFeatures, firstInstall)) }
@@ -227,12 +234,30 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                     when (action) {
                         WhatsNew.Action.PICK_ROTATION -> startPicking()
                         WhatsNew.Action.OPEN_PHOTOS -> { tab = Tab.GALLERY; openEncoded = null; photos = true }
+                        WhatsNew.Action.OPEN_SETTINGS -> settingsOpen = true
                     }
                 },
                 onDone = {
                     prefs.seenFeatures = WhatsNew.seenAfter(prefs.seenFeatures, news, firstInstall)
                     news = emptyList()
                 },
+            )
+        }
+        // On her birthday the surprise comes to her, once the other dialogs are out of the way.
+        LaunchedEffect(welcome, news.isEmpty()) {
+            if (!welcome && news.isEmpty() && MonthDay.now() == settings.birthday && !settings.birthNightUnlocked) birthSheet = true
+        }
+        if (birthSheet) {
+            BirthNightSheet(
+                onOpenWallpaper = {
+                    birthSheet = false
+                    tab = Tab.GALLERY
+                    photos = false
+                    openPhotoId = null
+                    Catalog.byId(Catalog.BIRTH_NIGHT)?.let { openEncoded = Selection.of(it).encode() }
+                },
+                onMessage = ::say,
+                onDismiss = { birthSheet = false },
             )
         }
         if (dedication) {
@@ -269,130 +294,152 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         BackHandler(enabled = open == null && tab != Tab.GALLERY) { tab = Tab.GALLERY }
         BackHandler(enabled = open == null && tab == Tab.GALLERY && picks != null) { picks = null }
 
-        if (openPhoto != null) {
-            PhotoDetailScreen(photo = openPhoto, onBack = { openPhotoId = null })
-        } else if (open != null) {
-            DetailScreen(
-                initial = open,
-                title = open.entry.title,
-                favorite = open.entryId in favorites,
-                onToggleFavorite = { toggleFavorite(open.entryId) },
-                onChanged = {
-                    prefs.saveCustomised(it)
-                    customVersion++
-                },
-                onBack = { openEncoded = null },
-            )
-        } else {
-            Scaffold(
-                snackbarHost = { SnackbarHost(snackbar) },
-                bottomBar = {
-                    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        for (t in Tab.entries) {
-                            NavigationBarItem(
-                                selected = tab == t,
-                                onClick = { tab = t },
-                                icon = { Icon(t.icon(), contentDescription = null) },
-                                label = { Text(t.title) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                ),
-                            )
-                        }
-                    }
-                },
-            ) { padding ->
-                // Only the bottom is taken by the navigation bar; each screen still pads for the status bar itself.
-                val bottom = PaddingValues(bottom = padding.calculateBottomPadding())
-                Box(Modifier.fillMaxSize().padding(bottom).consumeWindowInsets(bottom)) {
-                    AnimatedContent(tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { t ->
-                        when (t) {
-                            Tab.PRAYER -> PrayerScreen(
-                                onPickLocation = { picking = true },
-                                onOpenSettings = { settingsOpen = true },
-                                onMessage = ::say,
-                            )
-                            Tab.GALLERY -> {
-                                val unlocked = settings.secretUnlocked
-                                val items = remember(category, favoritesOnly, favorites, customVersion, unlocked, version) {
-                                    val only = category
-                                    Catalog.visible(unlocked)
-                                        .filter { only == null || it.inCategory(only) }
-                                        .filter { !favoritesOnly || it.id in favorites }
-                                        .map { (prefs.customised(it.id) ?: Selection.of(it)) to it.title }
-                                }
-                                GalleryScreen(
-                                    items = items,
-                                    category = category,
-                                    favoritesOnly = favoritesOnly,
-                                    favorites = favorites,
-                                    onCategory = { category = it },
-                                    onFavoritesOnly = { favoritesOnly = it },
-                                    onToggleFavorite = ::toggleFavorite,
-                                    onOpen = { openEncoded = it.encode() },
-                                    onDedication = { dedication = true },
-                                    picks = picks,
-                                    photos = photos,
-                                    onPhotos = { photos = it },
-                                    photoGrid = { padding, header ->
-                                        PhotoGrid(
-                                            padding = padding,
-                                            header = header,
-                                            picks = picks,
-                                            onTogglePick = ::togglePick,
-                                            onOpen = { openPhotoId = it.id },
-                                        )
-                                    },
-                                    onStartPicking = ::startPicking,
-                                    onTogglePick = ::togglePick,
-                                    onClosePicking = { picks = null },
-                                    pickingBar = {
-                                        RotationBar(
-                                            count = picks?.size ?: 0,
-                                            running = rotationRunning,
-                                            onStart = { interval, target, live ->
-                                                val chosen = picks.orEmpty()
-                                                RotationAlarms.start(context, chosen, interval, target, live)
-                                                rotationRunning = true
-                                                picks = null
-                                                // Live mode needs HBSnoor's live wallpaper on screen; offer it if it isn't.
-                                                val supported = !live || RotationAlarms.liveWallpaperSet(context) || try {
-                                                    // Photos aren't designs; the live wallpaper starts on her first design (or her usual one).
-                                                    val first = chosen.firstNotNullOfOrNull { RotationAlarms.selectionFor(context, it) } ?: prefs.liveSelection
-                                                    context.startActivity(Wallpapers.liveWallpaperIntent(context, first))
-                                                    true
-                                                } catch (_: Exception) {
-                                                    false
-                                                }
-                                                if (supported) {
-                                                    say("Döngü başladı: ${interval.title.replaceFirstChar { it.lowercase() }} yeni duvar kağıdı ✨")
-                                                } else {
-                                                    RotationAlarms.stop(context)
-                                                    rotationRunning = false
-                                                    say("Bu cihaz canlı duvar kağıdını desteklemiyor")
-                                                }
-                                            },
-                                            onStop = {
-                                                RotationAlarms.stop(context)
-                                                rotationRunning = false
-                                                picks = null
-                                                say("Döngü durduruldu")
-                                            },
-                                        )
-                                    },
-                                    onOpenSettings = { settingsOpen = true },
-                                    onBetulTheme = {
-                                        settings.themePalette = if (settings.themePalette == "betul") null else "betul"
-                                        themeVersion++
-                                        HanifeBetul.find(context, HanifeBetul.Surprise.THEME)?.let(::say)
-                                            ?: say(if (settings.themePalette == "betul") "Betül renkleri 🌸" else "Zümrüt ve altın ✨")
-                                    },
+        // Opening and closing a design or photo: it rises in, and sinks back to the gallery.
+        val screen = openPhotoId?.let { "p:$it" } ?: openEncoded?.let { "d:$it" } ?: ""
+        AnimatedContent(
+            screen,
+            transitionSpec = {
+                if (targetState.isNotEmpty()) {
+                    (fadeIn(Motion.fade()) + scaleIn(Motion.spring(), initialScale = 0.94f)) togetherWith fadeOut(Motion.fade())
+                } else {
+                    fadeIn(Motion.fade()) togetherWith (fadeOut(Motion.fade()) + scaleOut(Motion.spring(), targetScale = 0.94f))
+                }
+            },
+            label = "screen",
+        ) { key ->
+            val openPhoto = if (key.startsWith("p:")) Photos.byId(context, key.drop(2)) else null
+            val open = if (key.startsWith("d:")) Selection.decode(key.drop(2)) else null
+            if (openPhoto != null) {
+                PhotoDetailScreen(photo = openPhoto, onBack = { openPhotoId = null })
+            } else if (open != null) {
+                DetailScreen(
+                    initial = open,
+                    title = open.entry.title,
+                    favorite = open.entryId in favorites,
+                    onToggleFavorite = { toggleFavorite(open.entryId) },
+                    onChanged = {
+                        prefs.saveCustomised(it)
+                        customVersion++
+                    },
+                    onBack = { openEncoded = null },
+                )
+            } else {
+                Scaffold(
+                    snackbarHost = { SnackbarHost(snackbar) },
+                    bottomBar = {
+                        NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+                            for (t in Tab.entries) {
+                                NavigationBarItem(
+                                    selected = tab == t,
+                                    onClick = { tab = t },
+                                    icon = { Icon(t.icon(), contentDescription = null) },
+                                    label = { Text(t.title) },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    ),
                                 )
                             }
-                            Tab.QIBLA -> QiblaScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
-                            Tab.TESBIH -> TesbihScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
-                            Tab.CALENDAR -> CalendarScreen(onOpenSettings = { settingsOpen = true })
+                        }
+                    },
+                ) { padding ->
+                    // Only the bottom is taken by the navigation bar; each screen still pads for the status bar itself.
+                    val bottom = PaddingValues(bottom = padding.calculateBottomPadding())
+                    Box(Modifier.fillMaxSize().padding(bottom).consumeWindowInsets(bottom)) {
+                        AnimatedContent(
+                        tab,
+                        // Tabs cross-fade with a slight lift.
+                        transitionSpec = { (fadeIn(Motion.fade()) + scaleIn(Motion.spring(), initialScale = 0.98f)) togetherWith fadeOut(Motion.fade()) },
+                        label = "tab",
+                    ) { t ->
+                            when (t) {
+                                Tab.PRAYER -> PrayerScreen(
+                                    onPickLocation = { picking = true },
+                                    onOpenSettings = { settingsOpen = true },
+                                    onMessage = ::say,
+                                )
+                                Tab.GALLERY -> {
+                                    val unlocked = settings.secretUnlocked
+                                    val birthNight = settings.birthNightUnlocked
+                                    val items = remember(category, favoritesOnly, favorites, customVersion, unlocked, birthNight, version) {
+                                        val only = category
+                                        Catalog.visible(unlocked, birthNight)
+                                            .filter { only == null || it.inCategory(only) }
+                                            .filter { !favoritesOnly || it.id in favorites }
+                                            .map { (prefs.customised(it.id) ?: Selection.of(it)) to it.title }
+                                    }
+                                    GalleryScreen(
+                                        items = items,
+                                        category = category,
+                                        favoritesOnly = favoritesOnly,
+                                        favorites = favorites,
+                                        onCategory = { category = it },
+                                        onFavoritesOnly = { favoritesOnly = it },
+                                        onToggleFavorite = ::toggleFavorite,
+                                        onOpen = { openEncoded = it.encode() },
+                                        onDedication = { dedication = true },
+                                        picks = picks,
+                                        photos = photos,
+                                        onPhotos = { photos = it },
+                                        photoGrid = { padding, header ->
+                                            PhotoGrid(
+                                                padding = padding,
+                                                header = header,
+                                                picks = picks,
+                                                onTogglePick = ::togglePick,
+                                                onOpen = { openPhotoId = it.id },
+                                            )
+                                        },
+                                        onStartPicking = ::startPicking,
+                                        onTogglePick = ::togglePick,
+                                        onClosePicking = { picks = null },
+                                        pickingBar = {
+                                            RotationBar(
+                                                count = picks?.size ?: 0,
+                                                running = rotationRunning,
+                                                onStart = { interval, target, live ->
+                                                    val chosen = picks.orEmpty()
+                                                    RotationAlarms.start(context, chosen, interval, target, live)
+                                                    rotationRunning = true
+                                                    picks = null
+                                                    // Live mode needs HBSnoor's live wallpaper on screen; offer it if it isn't.
+                                                    val supported = !live || RotationAlarms.liveWallpaperSet(context) || try {
+                                                        // Photos aren't designs; the live wallpaper starts on her first design (or her usual one).
+                                                        val first = chosen.firstNotNullOfOrNull { RotationAlarms.selectionFor(context, it) } ?: prefs.liveSelection
+                                                        context.startActivity(Wallpapers.liveWallpaperIntent(context, first))
+                                                        true
+                                                    } catch (_: Exception) {
+                                                        false
+                                                    }
+                                                    if (supported) {
+                                                        say("Döngü başladı: ${interval.title.replaceFirstChar { it.lowercase() }} yeni duvar kağıdı ✨")
+                                                    } else {
+                                                        RotationAlarms.stop(context)
+                                                        rotationRunning = false
+                                                        say("Bu cihaz canlı duvar kağıdını desteklemiyor")
+                                                    }
+                                                },
+                                                onStop = {
+                                                    RotationAlarms.stop(context)
+                                                    rotationRunning = false
+                                                    picks = null
+                                                    say("Döngü durduruldu")
+                                                },
+                                            )
+                                        },
+                                        onOpenSettings = { settingsOpen = true },
+                                        onBetulTheme = {
+                                            settings.themePalette = if (settings.themePalette == "betul") null else "betul"
+                                            themeVersion++
+                                            HanifeBetul.find(context, HanifeBetul.Surprise.THEME)?.let(::say)
+                                                ?: say(if (settings.themePalette == "betul") "Betül renkleri 🌸" else "Zümrüt ve altın ✨")
+                                        },
+                                    )
+                                }
+                                Tab.QIBLA -> QiblaScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
+                                Tab.TESBIH -> TesbihScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
+                                Tab.CALENDAR -> CalendarScreen(onOpenSettings = { settingsOpen = true }, onBirthday = { birthSheet = true })
+                            }
                         }
                     }
                 }

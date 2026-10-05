@@ -30,7 +30,7 @@ object DiyanetApi {
         conn.connectTimeout = 15_000
         conn.readTimeout = 25_000
         conn.setRequestProperty("Accept", "application/json")
-        conn.setRequestProperty("User-Agent", "HBSnoor (Android)")
+        conn.setRequestProperty("User-Agent", "noor by HBS (Android)")
         try {
             val code = conn.responseCode
             if (code !in 200..299) throw IOException("Sunucu yanıtı: HTTP $code")

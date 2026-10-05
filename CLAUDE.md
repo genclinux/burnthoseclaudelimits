@@ -1,4 +1,4 @@
-# HBSnoor
+# noor by HBS
 
 Android app (Kotlin, Jetpack Compose, minSdk 29) for Hanife Betül: Islamic
 wallpapers drawn in code, real mosque photos from Wikimedia Commons, Diyanet
@@ -10,7 +10,8 @@ prayer times, qibla, tesbih and a Hijri calendar. The UI text is Turkish.
   top of `WhatsNew.ALL` (`app/src/main/java/com/noor/wallpapers/WhatsNew.kt`)
   with the version it ships in, in Turkish, and an `Action` if the feature can
   be tried straight away. Never reuse or rename an id. `WhatsNewTest` fails if
-  the newest entry's version differs from `versionName`.
+  the newest entry's version differs from `versionName`. The one exception:
+  easter eggs (`HanifeBetul.Surprise`) are never announced; finding them is the point.
 - **Use the 2.0 design system** in `ui/Design.kt`: `ScreenHeader` at the top of
   every tab (with the settings gear), `NoorCard`/`InfoCard`, `SectionTitle`,
   `OptionRow`, `ChoiceChips`/`NoorChip`, `NoorSheet`, `Footnote`, and the `Noor`

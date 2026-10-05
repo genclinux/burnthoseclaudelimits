@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -103,6 +105,7 @@ fun GalleryScreen(
     if (favoritesOnly && items.isEmpty() && !photos) {
         LaunchedEffect(Unit) { HanifeBetul.find(context, HanifeBetul.Surprise.EMPTY_FAVORITES) }
     }
+    val gridState = rememberLazyGridState()
     Scaffold(
         bottomBar = { if (picks != null) pickingBar() },
         // Döngü, labelled and always in reach, instead of an unexplained icon.
@@ -112,6 +115,8 @@ fun GalleryScreen(
                     onClick = onStartPicking,
                     icon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
                     text = { Text("Döngü") },
+                    // Shrinks to its icon while she scrolls through the designs, and opens again at the top.
+                    expanded = !gridState.canScrollBackward || !gridState.lastScrolledForward,
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -176,6 +181,7 @@ fun GalleryScreen(
             val aspect = thumb.width / thumb.height.toFloat()
             val landscape = aspect > 1f
             LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Adaptive(minSize = if (landscape) 220.dp else 150.dp),
                 contentPadding = PaddingValues(
                     start = Noor.Gutter, end = Noor.Gutter, top = padding.calculateTopPadding(),
@@ -199,6 +205,8 @@ fun GalleryScreen(
                 }
                 items(items, key = { it.first.entryId }) { (sel, title) ->
                     WallpaperCard(
+                        // Cards glide into place when the category or favourites change.
+                        modifier = Modifier.animateItem(),
                         sel = sel,
                         title = title,
                         aspect = aspect,
@@ -210,7 +218,7 @@ fun GalleryScreen(
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
-                        "HBSnoor · Sürüm ${rememberVersionName()}",
+                        "noor by HBS · Sürüm ${rememberVersionName()}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -256,6 +264,7 @@ private fun Chip(label: String, arabic: String?, selected: Boolean, onClick: () 
 
 @Composable
 private fun WallpaperCard(
+    modifier: Modifier = Modifier,
     sel: Selection,
     title: String,
     aspect: Float,
@@ -269,22 +278,16 @@ private fun WallpaperCard(
     val shape = Noor.Card
     val picked = pickNumber != null && pickNumber > 0
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .aspectRatio(aspect)
+            .pressable(onClick)
             .then(if (picked) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clickable(onClick = onClick),
+            .background(MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        val bmp = thumb
-        if (bmp != null) {
-            Image(bmp, contentDescription = title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        } else {
-            CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(28.dp).align(Alignment.Center),
-            )
+        FadeInImage(thumb, contentDescription = title, modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(28.dp))
         }
         if (pickNumber != null) PickBadge(pickNumber, Modifier.align(Alignment.TopStart))
         Box(
@@ -317,10 +320,17 @@ private fun WallpaperCard(
 @Composable
 fun PickBadge(pickNumber: Int, modifier: Modifier = Modifier) {
     val picked = pickNumber > 0
+    // Picking pops the badge; un-picking lets it settle back.
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        if (picked) 1.15f else 1f,
+        androidx.compose.animation.core.spring(dampingRatio = 0.4f, stiffness = 500f),
+        label = "pick",
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .padding(10.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .size(30.dp)
             .clip(CircleShape)
             .background(if (picked) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.35f))

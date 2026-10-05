@@ -308,7 +308,7 @@ fun DetailScreen(
             }
             SheetOption(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet (PNG)") {
                 sheet = false
-                act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.seed}") }
+                act({ "Resimler/noor by HBS klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "noor-${sel.entryId}-${sel.seed}") }
             }
         }
     }

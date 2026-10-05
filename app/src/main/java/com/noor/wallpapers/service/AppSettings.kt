@@ -179,14 +179,18 @@ class AppSettings(context: Context) {
 
     // Hanife Betül -------------------------------------------------------------------
 
+    /** Hers is 12 September (2000); she can still change it on the ✦ page. */
     var birthday: MonthDay?
-        get() = sp.getString("birthday", null)?.let { runCatching { MonthDay.parse(it) }.getOrNull() }
+        get() = sp.getString("birthday", null)?.let { runCatching { MonthDay.parse(it) }.getOrNull() } ?: MonthDay.of(9, 12)
         set(v) = sp.edit().putString("birthday", v?.toString()).apply()
 
     /** Surprises she has found (see HanifeBetul.Surprise). */
     var foundSurprises: Set<String>
-        get() = sp.getStringSet("found_surprises", emptySet())!!.toSet()
-        set(v) = sp.edit().putStringSet("found_surprises", v).apply()
+        get() = sp.getStringSet(KEY_SURPRISES, emptySet())!!.toSet()
+        set(v) = sp.edit().putStringSet(KEY_SURPRISES, v).apply()
+
+    /** "Doğduğun Gece", unlocked by tapping her birthday in Takvim. */
+    val birthNightUnlocked: Boolean get() = "BIRTH_NIGHT" in foundSurprises
 
     /** The hidden Lâle · Hilâl · Allah design, unlocked from the tesbih. */
     var secretUnlocked: Boolean
@@ -226,6 +230,7 @@ class AppSettings(context: Context) {
         const val KEY_LIVE_FOLLOWS = "live_follows_prayer"
         const val KEY_THEME = "theme_palette"
         const val KEY_SECRET = "secret_unlocked"
+        const val KEY_SURPRISES = "found_surprises"
         const val KEY_ROTATION_ON = "rotation_on"
         const val KEY_ROTATION_IDS = "rotation_ids"
         const val KEY_ROTATION_INTERVAL = "rotation_interval"

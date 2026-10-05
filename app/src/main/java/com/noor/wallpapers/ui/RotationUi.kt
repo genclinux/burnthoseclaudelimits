@@ -1,5 +1,13 @@
 package com.noor.wallpapers.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -94,10 +102,13 @@ fun WhatsNewDialog(features: List<WhatsNew.Feature>, onAction: (WhatsNew.Action)
         onDismissRequest = onDone,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         icon = {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(64.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
-            ) { Text(f.emoji, fontSize = 30.sp) }
+            // The emoji pops in for each page.
+            AnimatedContent(f.emoji, transitionSpec = { scaleIn(Motion.spring()) + fadeIn(Motion.fade()) togetherWith fadeOut(Motion.fade()) }, label = "emoji") { e ->
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(64.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                ) { Text(e, fontSize = 30.sp) }
+            }
         },
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -110,7 +121,17 @@ fun WhatsNewDialog(features: List<WhatsNew.Feature>, onAction: (WhatsNew.Action)
                 Text(f.title, textAlign = TextAlign.Center)
             }
         },
-        text = { Text(f.body, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+        // Pages slide in from the right, like turning a page.
+        text = {
+            AnimatedContent(
+                page,
+                transitionSpec = {
+                    (slideInHorizontally(Motion.spring()) { it / 3 } + fadeIn(Motion.fade())) togetherWith
+                        (slideOutHorizontally(Motion.spring()) { -it / 3 } + fadeOut(Motion.fade())) using SizeTransform(clip = false)
+                },
+                label = "page",
+            ) { p -> Text(features[p].body, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) }
+        },
         confirmButton = {
             val action = f.action
             if (action != null) {

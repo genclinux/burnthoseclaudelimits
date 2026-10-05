@@ -78,7 +78,7 @@ object RotationAlarms {
      */
     fun designs(context: Context): List<String> {
         val s = AppSettings(context)
-        val visible = Catalog.visible(s.secretUnlocked).map { it.id }.toSet()
+        val visible = Catalog.visible(s.secretUnlocked, s.birthNightUnlocked).map { it.id }.toSet()
         return s.rotationIds.filter { it in visible || Photos.byId(context, it) != null }.take(RotationSchedule.MAX)
     }
 
@@ -130,7 +130,7 @@ object RotationAlarms {
         return sel.encode() to id
     }
 
-    /** Whether HBSnoor's live wallpaper is the one on the screen now. */
+    /** Whether our live wallpaper is the one on the screen now. */
     fun liveWallpaperSet(context: Context): Boolean = runCatching {
         WallpaperManager.getInstance(context).wallpaperInfo?.component ==
             ComponentName(context, NoorLiveWallpaperService::class.java)

@@ -139,6 +139,8 @@ fun PhotoGrid(
             }
             items(inRegion, key = { it.id }) { photo ->
                 PhotoCard(
+                    // Each place's photos glide in as its search returns.
+                    modifier = Modifier.animateItem(),
                     photo = photo,
                     aspect = aspect,
                     pickNumber = picks?.let { it.indexOf(photo.id) + 1 },
@@ -150,7 +152,7 @@ fun PhotoGrid(
 }
 
 @Composable
-private fun PhotoCard(photo: Photo, aspect: Float, pickNumber: Int?, onClick: () -> Unit) {
+private fun PhotoCard(photo: Photo, aspect: Float, pickNumber: Int?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val image by produceState<ImageBitmap?>(Photos.cachedThumbnail(photo)?.asImageBitmap(), photo.pageId) {
         value = runCatching { Photos.thumbnail(context, photo).asImageBitmap() }.getOrNull()
@@ -158,19 +160,16 @@ private fun PhotoCard(photo: Photo, aspect: Float, pickNumber: Int?, onClick: ()
     val shape = Noor.Card
     val picked = pickNumber != null && pickNumber > 0
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .aspectRatio(aspect)
+            .pressable(onClick)
             .then(if (picked) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clickable(onClick = onClick),
+            .background(MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        val bmp = image
-        if (bmp != null) {
-            Image(bmp, contentDescription = photo.place.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-        } else {
-            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(28.dp).align(Alignment.Center))
+        FadeInImage(image, contentDescription = photo.place.title, modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(28.dp))
         }
         if (pickNumber != null) PickBadge(pickNumber, Modifier.align(Alignment.TopStart))
         Column(

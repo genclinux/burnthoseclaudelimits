@@ -1,4 +1,4 @@
-# HBSnoor — Islamic wallpapers and prayer times, made for Hanife Betül
+# noor by HBS — Islamic wallpapers and prayer times, made for Hanife Betül
 
 An Android app that draws Islamic art on the device at its native resolution, so
 no artwork is downloaded and nothing is upscaled. It is also a daily companion:
@@ -90,6 +90,22 @@ Galeri, Vakitler, Kıble, Zikir and Takvim. Out of the box everything is set for
   replaces the daily wallpaper while it runs; stop or edit it in the gallery or
   in *Ayarlar*. A popup introduces it the first time the app opens.
 
+## 2.1: name, icons, motion
+
+- The app is called **noor by HBS**. Its launcher icon can be changed in
+  *Ayarlar › Görünüm*: Zümrüt (the original), Betül, Hilâl, Nur or Marmara.
+  Each is an `<activity-alias>`; switching enables one and disables the rest,
+  and the launcher picks it up within a few seconds.
+- Things move: cards give under the finger, pictures fade in, the gallery
+  re-flows when the category changes, the countdown rolls like a flip clock,
+  the tesbih beads tug with every count, and screens rise and sink as they
+  open and close.
+- A hidden surprise for her birthday (12 September 2000): tap that day in
+  Takvim, marked only with a tiny ♡, or open the app on her birthday. It tells
+  her about the day she was born and unlocks **Doğduğun Gece**, the sky over
+  the Marmara that night with the moon as it really was (99%, a day before
+  full). It is not announced in the "Yeni" popups on purpose.
+
 ## Gerçek Camiler: real photographs
 
 Next to the drawn designs, the **📷 Gerçek Camiler** tab shows real photographs
@@ -132,7 +148,7 @@ for her (in Turkish):
 - **Greetings** in the header: time-of-day greetings, Friday greetings (Hayırlı
   Cumalar), and Ramadan and Eid greetings worked out from the Hijri calendar.
 - **A welcome note** on first launch. A **✦ button** (or five taps on the
-  "HBSnoor" title) opens a dedication page explaining what her names mean.
+  "noor by HBS" title) opens a dedication page explaining what her names mean.
 - **Personal messages** when she sets a wallpaper, a compliment on every
   seventh shuffle, and a personal note when her favourites list is empty.
 - **Her page (✦).** It shows what her names mean and their *ebced* (abjad) value:
@@ -145,7 +161,7 @@ for her (in Turkish):
   Ottoman letters لاله, هلال and الله use the same letters, so each is worth 66.
 - **Touch the live wallpaper** and a star shoots from your fingertip.
 - **More of her collection.** Her own words (*Kendi Sözün*), her name in Rik'a and
-  Kûfî, and the Nûr verse (24:35), the *noor* in HBSnoor.
+  Kûfî, and the Nûr verse (24:35), the *noor* in noor by HBS.
 - **Long-press ✦** to paint the whole app in her rose-gold and teal.
 - **Personal lines** in notifications, the qibla compass and the tesbih (153, 438,
   591 and 99 each have a message).
@@ -193,14 +209,14 @@ On the detail screen you can:
   rendered at the exact panel size, so ColorOS doesn't crop or scroll it.
 - Pick **Live wallpaper** for the same design with slowly twinkling stars and a
   drifting band of light. It animates only while visible, at 20 fps.
-- **Save** a PNG to `Pictures/HBSnoor` (no storage permission needed).
+- **Save** a PNG to `Pictures/noor by HBS` (no storage permission needed).
 - Add designs to **Favourites**. Your palette and seed choices are remembered for
   each design.
 
 ## Install
 
 **Download the APK from [Releases](https://github.com/genclinux/burnthoseclaudelimits/releases/latest)**
-(`HBSnoor-v1.0.x.apk`), open it on the tablet, and allow *Install unknown apps*
+(`noor by HBS-v1.0.x.apk`), open it on the tablet, and allow *Install unknown apps*
 when asked. Every release is signed with the same key, so newer versions
 install as updates.
 
@@ -216,7 +232,7 @@ debug key, so it installs directly:
 
 1. On the Find X9 Pro, open the APK and allow *Install unknown apps* for your
    browser or file manager when ColorOS asks.
-2. Open **HBSnoor**, choose a design, then tap **Duvar kağıdı yap** (Set wallpaper).
+2. Open **noor by HBS**, choose a design, then tap **Duvar kağıdı yap** (Set wallpaper).
 
 To build it yourself, use JDK 17 and the Android SDK (API 36):
 

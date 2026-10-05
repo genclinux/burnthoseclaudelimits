@@ -104,7 +104,7 @@ class PrayerWidget : AppWidgetProvider() {
             val next = schedule?.next(now)
             val today = schedule?.day(schedule.today(now))
             if (schedule == null || next == null || today == null) {
-                v.setTextViewText(R.id.widget_place, "HBSnoor")
+                v.setTextViewText(R.id.widget_place, "noor by HBS")
                 v.setTextViewText(R.id.widget_next, "Konumunu seçmek için dokun")
                 v.setViewVisibility(R.id.widget_countdown_box, View.GONE)
                 if (withTimes) v.setViewVisibility(R.id.widget_times, View.GONE)

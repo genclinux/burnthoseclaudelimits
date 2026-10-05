@@ -1,6 +1,29 @@
 package com.noor.wallpapers.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * HBSnoor 2.0's visual language, in one place so every screen speaks it:
+ * noor 2's visual language, in one place so every screen speaks it:
  * one gutter, one card, one header, one sheet, one row, one set of chips.
  * Screens use these instead of their own paddings, radii and title styles.
  */
@@ -159,9 +182,11 @@ fun NoorCard(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.pressable(onClick) else Modifier)
             .clip(Noor.Card)
             .background(color)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            // Options that appear (notifications, daily wallpaper) grow the card instead of jumping.
+            .animateContentSize(Motion.spring())
             .padding(Noor.Inset),
         content = content,
     )
@@ -201,8 +226,8 @@ fun OptionRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.pressable(onClick, pressedScale = 0.98f) else Modifier)
             .clip(Noor.Tile)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(vertical = 10.dp, horizontal = 4.dp),
     ) {
         if (icon != null || emoji != null) {
@@ -303,4 +328,54 @@ fun Footnote(text: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
         modifier = modifier,
     )
+}
+
+/** The app's motion: one spring and one fade, so everything moves alike. */
+object Motion {
+    fun <T> spring() = androidx.compose.animation.core.spring<T>(dampingRatio = 0.8f, stiffness = 380f)
+    fun <T> fade() = androidx.compose.animation.core.tween<T>(durationMillis = 260)
+}
+
+/**
+ * Clickable that gives a little under the finger: it sinks to [pressedScale]
+ * while pressed and springs back. Used by every card and row.
+ */
+fun Modifier.pressable(onClick: () -> Unit, pressedScale: Float = 0.96f): Modifier = composed {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) pressedScale else 1f, Motion.spring(), label = "press")
+    this
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .clickable(interactionSource = interaction, indication = LocalIndication.current, onClick = onClick)
+}
+
+/** A picture that fades in when it arrives instead of popping in. */
+@Composable
+fun FadeInImage(image: ImageBitmap?, contentDescription: String?, modifier: Modifier = Modifier, placeholder: @Composable () -> Unit = {}) {
+    Crossfade(image, animationSpec = Motion.fade(), label = "image", modifier = modifier) { img ->
+        if (img != null) Image(img, contentDescription, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { placeholder() }
+    }
+}
+
+/**
+ * Text whose changing characters roll: each digit that changes slides up
+ * while the old one slides out, like a split-flap clock. For countdowns and counters.
+ */
+@Composable
+fun RollingText(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier) {
+    Row(modifier) {
+        text.forEachIndexed { i, ch ->
+            key(text.length - i) {
+                AnimatedContent(
+                    ch,
+                    transitionSpec = {
+                        (slideInVertically(Motion.spring()) { it / 2 } + fadeIn(Motion.fade())) togetherWith
+                            (slideOutVertically(Motion.spring()) { -it / 2 } + fadeOut(Motion.fade())) using SizeTransform(clip = false)
+                    },
+                    label = "digit",
+                ) { c -> Text(c.toString(), style = style, color = color) }
+            }
+        }
+    }
 }

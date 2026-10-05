@@ -91,6 +91,7 @@ object Catalog {
         })
         add(Entry(BIRTHDAY, "Doğum Günün ♡", hb, betul, 9) { ctx -> BirthdayArt.scene(ctx) })
         add(Entry(SECRET, "Lâle · Hilâl · Allah", hb, betul, 66, secret = true) { ctx -> TulipArt.scene(ctx) })
+        add(Entry(BIRTH_NIGHT, "Doğduğun Gece · 12.09.2000", hb, betul, 912, secret = true) { ctx -> BirthNightArt.scene(ctx) })
 
         // Geometric
         add(geo("geo-khatam", "Hâtem", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, 230.0))
@@ -182,9 +183,14 @@ object Catalog {
 
     fun byId(id: String) = entries.firstOrNull { it.id == id }
 
-    /** What the gallery shows: everything except secrets she hasn't found yet. */
-    fun visible(secretUnlocked: Boolean) = entries.filter { !it.secret || secretUnlocked }
+    /**
+     * What the gallery shows: everything except secrets she hasn't found yet.
+     * The tesbih unlocks the tulip; tapping her birthday in Takvim, the night she was born.
+     */
+    fun visible(secretUnlocked: Boolean, birthNight: Boolean = false) =
+        entries.filter { !it.secret || (if (it.id == BIRTH_NIGHT) birthNight else secretUnlocked) }
 
     const val BIRTHDAY = "hb-dogum-gunu"
     const val SECRET = "hb-lale-hilal"
+    const val BIRTH_NIGHT = "hb-dogdugun-gece"
 }

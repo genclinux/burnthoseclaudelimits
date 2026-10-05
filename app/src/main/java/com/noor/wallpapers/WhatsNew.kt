@@ -12,6 +12,7 @@ object WhatsNew {
     enum class Action(val label: String) {
         PICK_ROTATION("Döngüyü kur"),
         OPEN_PHOTOS("Fotoğraflara bak"),
+        OPEN_SETTINGS("Simgeleri gör"),
     }
 
     data class Feature(
@@ -25,10 +26,27 @@ object WhatsNew {
 
     val ALL: List<Feature> = listOf(
         Feature(
+            id = "name-and-icons",
+            version = "2.1.0",
+            emoji = "🎨",
+            title = "noor by HBS ve kendi simgen",
+            body = "Uygulamanın adı artık noor by HBS. Ana ekrandaki simgeyi de sen seç: Zümrüt, Betül, Hilâl, Nur ya da " +
+                "Marmara. Ayarlar › Görünüm'de.",
+            action = Action.OPEN_SETTINGS,
+        ),
+        Feature(
+            id = "motion",
+            version = "2.1.0",
+            emoji = "🌊",
+            title = "Daha canlı",
+            body = "Kartlar dokununca hafifçe iner, resimler yumuşakça belirir, vakit sayacı saat gibi döner, zikir " +
+                "çekerken boncuklar kıpırdar.",
+        ),
+        Feature(
             id = "v2-design",
             version = "2.0.0",
             emoji = "✨",
-            title = "HBSnoor 2.0: yeni görünüm",
+            title = "noor 2.0: yeni görünüm",
             body = "Her sekme aynı düzende: başlık solda, ⚙ Ayarlar her sekmenin sağ üstünde. Ayarlar konulara göre " +
                 "kartlara ayrıldı, seçenekler aynı biçimde. Döngü artık Galeri'nin altında, adıyla duran bir düğme.",
         ),
