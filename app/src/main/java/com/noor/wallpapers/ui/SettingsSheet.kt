@@ -64,6 +64,7 @@ import com.noor.wallpapers.service.DailySource
 import com.noor.wallpapers.service.Notifications
 import com.noor.wallpapers.service.PrayerAlarms
 import com.noor.wallpapers.service.PrayerWidget
+import com.noor.wallpapers.service.RotationAlarms
 import com.noor.wallpapers.service.Work
 import com.noor.wallpapers.wallpaper.Prefs
 import com.noor.wallpapers.wallpaper.Target
@@ -72,7 +73,14 @@ import com.noor.wallpapers.wallpaper.Wallpapers
 /** Everything beyond the gallery: notifications, the live wallpaper's prayer panel, daily wallpapers, the app's colours. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SettingsSheet(onPickLocation: () -> Unit, onThemeChanged: () -> Unit, onMessage: (String) -> Unit, onDismiss: () -> Unit) {
+fun SettingsSheet(
+    onPickLocation: () -> Unit,
+    onThemeChanged: () -> Unit,
+    onMessage: (String) -> Unit,
+    onEditRotation: () -> Unit,
+    onRotationChanged: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     val s = remember { AppSettings(context) }
     // Re-read after returning from system settings (notification or alarm permission).
@@ -91,6 +99,7 @@ fun SettingsSheet(onPickLocation: () -> Unit, onThemeChanged: () -> Unit, onMess
     var source by remember { mutableStateOf(s.dailySource) }
     var target by remember { mutableStateOf(s.dailyTarget) }
     var theme by remember { mutableStateOf(s.themePalette) }
+    var rotating by remember { mutableStateOf(RotationAlarms.active(context)) }
     val canExact = remember(resumed) { PrayerAlarms.canExact(context) }
     val permitted = remember(resumed) { Notifications.permitted(context) }
 
@@ -218,6 +227,11 @@ fun SettingsSheet(onPickLocation: () -> Unit, onThemeChanged: () -> Unit, onMess
             Section("Her gün yeni duvar kağıdı")
             SwitchRow("Günlük duvar kağıdı", "Her gün kendiliğinden yeni bir tasarım; doğum gününde sana özel olanı. Canlı duvar kağıdının yerini alır.", daily) {
                 daily = it; s.dailyWallpaper = it
+                if (it && rotating) {
+                    RotationAlarms.stop(context)
+                    rotating = false
+                    onRotationChanged()
+                }
                 Work.ensure(context)
                 if (it) {
                     Work.dailyNow(context)
@@ -238,6 +252,25 @@ fun SettingsSheet(onPickLocation: () -> Unit, onThemeChanged: () -> Unit, onMess
                     }
                 }
                 OutlinedButton(onClick = { Work.dailyNow(context); onMessage("Yeni duvar kağıdı hazırlanıyor… ✨") }) { Text("Şimdi değiştir") }
+            }
+
+            Section("Duvar kağıdı döngüsü")
+            Text(
+                if (rotating) "${RotationAlarms.designs(context).size} tasarım, ${s.rotationInterval.title.replaceFirstChar { it.lowercase() }} değişiyor."
+                else "Galeri'den 10 taneye kadar duvar kağıdı seç; 10 dakikada, saatte ya da günde bir sırayla değişsin. Günlük duvar kağıdının yerini alır.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(onClick = onEditRotation) { Text(if (rotating) "Seçimi düzenle" else "Tasarımları seç") }
+                if (rotating) {
+                    OutlinedButton(onClick = {
+                        RotationAlarms.stop(context)
+                        rotating = false
+                        onRotationChanged()
+                        onMessage("Döngü durduruldu")
+                    }) { Text("Durdur") }
+                }
             }
 
             Section("Uygulamanın renkleri")

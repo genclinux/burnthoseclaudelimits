@@ -27,6 +27,7 @@ object Work {
     private const val REFRESH_NOW = "prayer-refresh-now"
     private const val DAILY = "daily-wallpaper"
     private const val DAILY_NOW = "daily-wallpaper-now"
+    private const val ROTATION_CHECK = "wallpaper-rotation-check"
 
     private val online = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
@@ -47,6 +48,15 @@ object Work {
             )
         } else {
             wm.cancelUniqueWork(DAILY)
+        }
+        // The rotation runs on alarms; this hourly check only catches up if one was lost.
+        if (s.rotationOn) {
+            wm.enqueueUniquePeriodicWork(
+                ROTATION_CHECK, ExistingPeriodicWorkPolicy.KEEP,
+                PeriodicWorkRequestBuilder<RotationWorker>(1, TimeUnit.HOURS).build(),
+            )
+        } else {
+            wm.cancelUniqueWork(ROTATION_CHECK)
         }
     }
 

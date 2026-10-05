@@ -54,6 +54,10 @@
             android:name=".service.PrayerAlarmReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".service.RotationReceiver"
+            android:exported="false" />
+
         <!-- Only the system can send these protected broadcasts. -->
         <receiver
             android:name=".service.SystemEventsReceiver"

@@ -47,6 +47,8 @@ import com.noor.wallpapers.service.Notifications
 import com.noor.wallpapers.service.PrayerAlarms
 import com.noor.wallpapers.service.PrayerRepository
 import com.noor.wallpapers.service.PrayerWidget
+import com.noor.wallpapers.service.RotationAlarms
+import com.noor.wallpapers.service.RotationSchedule
 import com.noor.wallpapers.service.Work
 import com.noor.wallpapers.ui.CalendarScreen
 import com.noor.wallpapers.ui.DedicationSheet
@@ -58,6 +60,8 @@ import com.noor.wallpapers.ui.NoorIcons
 import com.noor.wallpapers.ui.NoorTheme
 import com.noor.wallpapers.ui.PrayerScreen
 import com.noor.wallpapers.ui.QiblaScreen
+import com.noor.wallpapers.ui.RotationBar
+import com.noor.wallpapers.ui.RotationIntroDialog
 import com.noor.wallpapers.ui.SettingsSheet
 import com.noor.wallpapers.ui.TesbihScreen
 import com.noor.wallpapers.ui.WelcomeDialog
@@ -90,7 +94,10 @@ class MainActivity : ComponentActivity() {
         Background.executor.execute {
             PrayerAlarms.reschedule(app)
             PrayerWidget.updateAll(app)
+            RotationAlarms.reschedule(app)
         }
+        // Catch up if the rotation missed a change while the phone slept.
+        if (RotationAlarms.active(app)) RotationAlarms.applyNow(app)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -145,6 +152,10 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         var dedication by rememberSaveable { mutableStateOf(false) }
         var picking by rememberSaveable { mutableStateOf(false) }
         var settingsOpen by rememberSaveable { mutableStateOf(false) }
+        var rotationIntro by remember { mutableStateOf(!prefs.rotationIntroSeen) }
+        // Designs being chosen for the rotation, in order; null when not choosing.
+        var picks by rememberSaveable { mutableStateOf<List<String>?>(null) }
+        var rotationRunning by remember { mutableStateOf(RotationAlarms.active(context)) }
         val snackbar = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
@@ -173,6 +184,19 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                 onDismiss = { prefs.welcomed = true; welcome = false; HanifeBetul.find(context, HanifeBetul.Surprise.WELCOME) },
             )
         }
+        fun startPicking() {
+            tab = Tab.GALLERY
+            openEncoded = null
+            picks = settings.rotationIds.take(RotationSchedule.MAX)
+        }
+
+        // After the welcome, so a new install sees one dialog at a time.
+        if (rotationIntro && !welcome) {
+            RotationIntroDialog(
+                onTry = { prefs.rotationIntroSeen = true; rotationIntro = false; startPicking() },
+                onDismiss = { prefs.rotationIntroSeen = true; rotationIntro = false },
+            )
+        }
         if (dedication) {
             LaunchedEffect(Unit) { HanifeBetul.find(context, HanifeBetul.Surprise.DEDICATION) }
             DedicationSheet(
@@ -189,6 +213,8 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                 onPickLocation = { settingsOpen = false; picking = true },
                 onThemeChanged = { themeVersion++ },
                 onMessage = ::say,
+                onEditRotation = { settingsOpen = false; startPicking() },
+                onRotationChanged = { rotationRunning = RotationAlarms.active(context) },
                 onDismiss = { settingsOpen = false },
             )
         }
@@ -201,6 +227,7 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         val open = Selection.decode(openEncoded)
         BackHandler(enabled = open != null) { openEncoded = null }
         BackHandler(enabled = open == null && tab != Tab.GALLERY) { tab = Tab.GALLERY }
+        BackHandler(enabled = open == null && tab == Tab.GALLERY && picks != null) { picks = null }
 
         if (open != null) {
             DetailScreen(
@@ -263,6 +290,38 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                     onToggleFavorite = ::toggleFavorite,
                                     onOpen = { openEncoded = it.encode() },
                                     onDedication = { dedication = true },
+                                    picks = picks,
+                                    onStartPicking = ::startPicking,
+                                    onTogglePick = { id ->
+                                        val current = picks.orEmpty()
+                                        picks = when {
+                                            id in current -> current - id
+                                            current.size >= RotationSchedule.MAX -> {
+                                                say("En fazla ${RotationSchedule.MAX} duvar kağıdı seçebilirsin")
+                                                current
+                                            }
+                                            else -> current + id
+                                        }
+                                    },
+                                    onClosePicking = { picks = null },
+                                    pickingBar = {
+                                        RotationBar(
+                                            count = picks?.size ?: 0,
+                                            running = rotationRunning,
+                                            onStart = { interval, target ->
+                                                RotationAlarms.start(context, picks.orEmpty(), interval, target)
+                                                rotationRunning = true
+                                                picks = null
+                                                say("Döngü başladı: ${interval.title.replaceFirstChar { it.lowercase() }} yeni duvar kağıdı ✨")
+                                            },
+                                            onStop = {
+                                                RotationAlarms.stop(context)
+                                                rotationRunning = false
+                                                picks = null
+                                                say("Döngü durduruldu")
+                                            },
+                                        )
+                                    },
                                     onBetulTheme = {
                                         settings.themePalette = if (settings.themePalette == "betul") null else "betul"
                                         themeVersion++

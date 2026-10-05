@@ -7,6 +7,7 @@ import com.noor.wallpapers.prayer.OverlayPosition
 import com.noor.wallpapers.prayer.OverlayStyle
 import com.noor.wallpapers.prayer.Prayer
 import com.noor.wallpapers.prayer.PrayerLocation
+import com.noor.wallpapers.wallpaper.Target
 import java.time.MonthDay
 
 /**
@@ -129,6 +130,30 @@ class AppSettings(context: Context) {
     var dailyLastDate: String?
         get() = sp.getString("daily_last", null)
         set(v) = sp.edit().putString("daily_last", v).apply()
+
+    // Wallpaper rotation -----------------------------------------------------------
+
+    var rotationOn: Boolean
+        get() = sp.getBoolean("rotation_on", false)
+        set(v) = sp.edit().putBoolean("rotation_on", v).apply()
+
+    /** Entry ids in the order she picked them; the rotation shows them in this order. */
+    var rotationIds: List<String>
+        get() = sp.getString("rotation_ids", null)?.split(';')?.filter { it.isNotBlank() } ?: emptyList()
+        set(v) = sp.edit().putString("rotation_ids", v.joinToString(";")).apply()
+
+    var rotationInterval: RotationInterval
+        get() = sp.getString("rotation_interval", null).let { n -> RotationInterval.entries.firstOrNull { it.name == n } } ?: RotationInterval.HOUR
+        set(v) = sp.edit().putString("rotation_interval", v.name).apply()
+
+    var rotationTarget: Target
+        get() = sp.getString("rotation_target", null).let { n -> Target.entries.firstOrNull { it.name == n } } ?: Target.BOTH
+        set(v) = sp.edit().putString("rotation_target", v.name).apply()
+
+    /** "INTERVAL:slot" last put on screen, so a late alarm and the backup check don't both redraw. */
+    var rotationLastSlot: String?
+        get() = sp.getString("rotation_last", null)
+        set(v) = sp.edit().putString("rotation_last", v).apply()
 
     // Widget and app look ----------------------------------------------------------
 

@@ -174,6 +174,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("welcomed", false)
         set(value) = sp.edit().putBoolean("welcomed", value).apply()
 
+    /** Whether the "new: wallpaper rotation" popup has been shown. */
+    var rotationIntroSeen: Boolean
+        get() = sp.getBoolean("rotation_intro_seen", false)
+        set(value) = sp.edit().putBoolean("rotation_intro_seen", value).apply()
+
     /** Last palette/seed the user picked per entry, so the gallery remembers customisations. */
     fun customised(entryId: String): Selection? = Selection.decode(sp.getString("sel_$entryId", null))
 

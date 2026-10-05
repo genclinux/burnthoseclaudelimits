@@ -135,6 +135,9 @@ class SystemEventsReceiver : BroadcastReceiver() {
         val app = context.applicationContext
         Background.run(this) {
             PrayerAlarms.reschedule(app)
+            RotationAlarms.reschedule(app)
+            // The clock may have jumped into another slot.
+            if (RotationAlarms.active(app)) RotationAlarms.applyNow(app)
             PrayerWidget.updateAll(app)
             Work.ensure(app)
         }
