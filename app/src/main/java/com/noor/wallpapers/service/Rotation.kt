@@ -2,7 +2,9 @@ package com.noor.wallpapers.service
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.app.WallpaperManager
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import androidx.work.CoroutineWorker
@@ -14,6 +16,7 @@ import androidx.work.workDataOf
 import com.noor.wallpapers.art.Catalog
 import com.noor.wallpapers.wallpaper.Prefs
 import com.noor.wallpapers.wallpaper.Selection
+import com.noor.wallpapers.wallpaper.NoorLiveWallpaperService
 import com.noor.wallpapers.wallpaper.Target
 import com.noor.wallpapers.wallpaper.Wallpapers
 import java.time.LocalDateTime
@@ -53,7 +56,11 @@ object RotationSchedule {
         if (ids.isEmpty()) null else ids[Math.floorMod(slot, ids.size.toLong()).toInt()]
 }
 
-/** Keeps one alarm set for the next change, like [PrayerAlarms] does for prayer times. */
+/**
+ * Keeps one alarm set for the next change, like [PrayerAlarms] does for prayer
+ * times. In live mode there is no alarm: the live wallpaper checks the slot
+ * itself once a minute while it is on screen.
+ */
 object RotationAlarms {
     private const val REQUEST = 11
     private const val WORK = "wallpaper-rotation"
@@ -76,7 +83,7 @@ object RotationAlarms {
         val am = context.getSystemService(AlarmManager::class.java)
         val pi = intent(context)
         am.cancel(pi)
-        if (!active(context)) return
+        if (!active(context) || AppSettings(context).rotationLive) return
         val at = RotationSchedule.nextChange(ZonedDateTime.now(ZoneId.systemDefault()), AppSettings(context).rotationInterval)
             .toInstant().toEpochMilli()
         try {
@@ -98,17 +105,41 @@ object RotationAlarms {
         )
     }
 
+    /**
+     * For the live wallpaper in live mode: what to show now, keyed by its
+     * encoding so the key changes exactly when the picture should.
+     */
+    fun liveSelection(context: Context): Pair<String, Selection>? {
+        val s = AppSettings(context)
+        if (!s.rotationOn || !s.rotationLive) return null
+        val ids = designs(context)
+        if (ids.size < 2) return null
+        val slot = RotationSchedule.slot(ZonedDateTime.now(ZoneId.systemDefault()), s.rotationInterval)
+        val id = RotationSchedule.pick(ids, slot) ?: return null
+        val sel = Prefs(context).customised(id) ?: Catalog.byId(id)?.let(Selection::of) ?: return null
+        return sel.encode() to sel
+    }
+
+    /** Whether HBSnoor's live wallpaper is the one on the screen now. */
+    fun liveWallpaperSet(context: Context): Boolean = runCatching {
+        WallpaperManager.getInstance(context).wallpaperInfo?.component ==
+            ComponentName(context, NoorLiveWallpaperService::class.java)
+    }.getOrDefault(false)
+
     /** Starts (or restarts with new choices) the rotation and shows its first design at once. */
-    fun start(context: Context, ids: List<String>, interval: RotationInterval, target: Target) {
+    fun start(context: Context, ids: List<String>, interval: RotationInterval, target: Target, live: Boolean) {
         val s = AppSettings(context)
         s.rotationIds = ids.take(RotationSchedule.MAX)
         s.rotationInterval = interval
         s.rotationTarget = target
+        s.rotationLive = live
         s.rotationOn = true
         // Two schedules fighting over the wallpaper would make neither predictable.
         s.dailyWallpaper = false
+        if (live) s.liveFollowsPrayer = false
         Work.ensure(context)
-        applyNow(context, force = true)
+        // A static image would replace the live wallpaper, so live mode draws nothing here.
+        if (!live) applyNow(context, force = true)
         Background.executor.execute { reschedule(context) }
     }
 
@@ -135,7 +166,8 @@ class RotationWorker(context: Context, params: WorkerParameters) : CoroutineWork
     override suspend fun doWork(): Result {
         val ctx = applicationContext
         val s = AppSettings(ctx)
-        if (!RotationAlarms.active(ctx)) return Result.success()
+        // In live mode the live wallpaper rotates itself; setting a bitmap would replace it.
+        if (!RotationAlarms.active(ctx) || s.rotationLive) return Result.success()
         val slot = RotationSchedule.slot(ZonedDateTime.now(ZoneId.systemDefault()), s.rotationInterval)
         val key = "${s.rotationInterval.name}:$slot"
         if (s.rotationLastSlot == key && !inputData.getBoolean(FORCE, false)) return Result.success()

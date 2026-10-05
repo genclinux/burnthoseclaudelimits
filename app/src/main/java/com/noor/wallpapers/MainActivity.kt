@@ -68,6 +68,7 @@ import com.noor.wallpapers.ui.WelcomeDialog
 import com.noor.wallpapers.ui.rememberSettingsVersion
 import com.noor.wallpapers.wallpaper.Prefs
 import com.noor.wallpapers.wallpaper.Selection
+import com.noor.wallpapers.wallpaper.Wallpapers
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -308,11 +309,26 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                         RotationBar(
                                             count = picks?.size ?: 0,
                                             running = rotationRunning,
-                                            onStart = { interval, target ->
-                                                RotationAlarms.start(context, picks.orEmpty(), interval, target)
+                                            onStart = { interval, target, live ->
+                                                val chosen = picks.orEmpty()
+                                                RotationAlarms.start(context, chosen, interval, target, live)
                                                 rotationRunning = true
                                                 picks = null
-                                                say("Döngü başladı: ${interval.title.replaceFirstChar { it.lowercase() }} yeni duvar kağıdı ✨")
+                                                // Live mode needs HBSnoor's live wallpaper on screen; offer it if it isn't.
+                                                val supported = !live || RotationAlarms.liveWallpaperSet(context) || try {
+                                                    val first = Catalog.byId(chosen.first())?.let { prefs.customised(it.id) ?: Selection.of(it) }
+                                                    first?.let { context.startActivity(Wallpapers.liveWallpaperIntent(context, it)) }
+                                                    true
+                                                } catch (_: Exception) {
+                                                    false
+                                                }
+                                                if (supported) {
+                                                    say("Döngü başladı: ${interval.title.replaceFirstChar { it.lowercase() }} yeni duvar kağıdı ✨")
+                                                } else {
+                                                    RotationAlarms.stop(context)
+                                                    rotationRunning = false
+                                                    say("Bu cihaz canlı duvar kağıdını desteklemiyor")
+                                                }
                                             },
                                             onStop = {
                                                 RotationAlarms.stop(context)

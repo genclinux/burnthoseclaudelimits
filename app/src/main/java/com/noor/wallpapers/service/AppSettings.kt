@@ -134,21 +134,26 @@ class AppSettings(context: Context) {
     // Wallpaper rotation -----------------------------------------------------------
 
     var rotationOn: Boolean
-        get() = sp.getBoolean("rotation_on", false)
-        set(v) = sp.edit().putBoolean("rotation_on", v).apply()
+        get() = sp.getBoolean(KEY_ROTATION_ON, false)
+        set(v) = sp.edit().putBoolean(KEY_ROTATION_ON, v).apply()
 
     /** Entry ids in the order she picked them; the rotation shows them in this order. */
     var rotationIds: List<String>
-        get() = sp.getString("rotation_ids", null)?.split(';')?.filter { it.isNotBlank() } ?: emptyList()
-        set(v) = sp.edit().putString("rotation_ids", v.joinToString(";")).apply()
+        get() = sp.getString(KEY_ROTATION_IDS, null)?.split(';')?.filter { it.isNotBlank() } ?: emptyList()
+        set(v) = sp.edit().putString(KEY_ROTATION_IDS, v.joinToString(";")).apply()
 
     var rotationInterval: RotationInterval
-        get() = sp.getString("rotation_interval", null).let { n -> RotationInterval.entries.firstOrNull { it.name == n } } ?: RotationInterval.HOUR
-        set(v) = sp.edit().putString("rotation_interval", v.name).apply()
+        get() = sp.getString(KEY_ROTATION_INTERVAL, null).let { n -> RotationInterval.entries.firstOrNull { it.name == n } } ?: RotationInterval.HOUR
+        set(v) = sp.edit().putString(KEY_ROTATION_INTERVAL, v.name).apply()
 
     var rotationTarget: Target
         get() = sp.getString("rotation_target", null).let { n -> Target.entries.firstOrNull { it.name == n } } ?: Target.BOTH
         set(v) = sp.edit().putString("rotation_target", v.name).apply()
+
+    /** The live wallpaper does the rotating, instead of static images on home/lock. */
+    var rotationLive: Boolean
+        get() = sp.getBoolean(KEY_ROTATION_LIVE, false)
+        set(v) = sp.edit().putBoolean(KEY_ROTATION_LIVE, v).apply()
 
     /** "INTERVAL:slot" last put on screen, so a late alarm and the backup check don't both redraw. */
     var rotationLastSlot: String?
@@ -221,6 +226,13 @@ class AppSettings(context: Context) {
         const val KEY_LIVE_FOLLOWS = "live_follows_prayer"
         const val KEY_THEME = "theme_palette"
         const val KEY_SECRET = "secret_unlocked"
+        const val KEY_ROTATION_ON = "rotation_on"
+        const val KEY_ROTATION_IDS = "rotation_ids"
+        const val KEY_ROTATION_INTERVAL = "rotation_interval"
+        const val KEY_ROTATION_LIVE = "rotation_live"
+
+        /** Keys that change what a rotating live wallpaper shows. */
+        val ROTATION_KEYS = setOf(KEY_ROTATION_ON, KEY_ROTATION_IDS, KEY_ROTATION_INTERVAL, KEY_ROTATION_LIVE)
 
         /** Keys the live wallpaper redraws for. */
         val LIVE_KEYS = setOf(KEY_PRAYER_VERSION, KEY_OVERLAY_POSITION, KEY_OVERLAY_STYLE, KEY_LIVE_FOLLOWS, "birthday")

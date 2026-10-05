@@ -33,11 +33,13 @@ import com.noor.wallpapers.wallpaper.Target
 /** Bottom of the gallery while choosing: how often, where, and start. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RotationBar(count: Int, running: Boolean, onStart: (RotationInterval, Target) -> Unit, onStop: () -> Unit) {
+fun RotationBar(count: Int, running: Boolean, onStart: (RotationInterval, Target, Boolean) -> Unit, onStop: () -> Unit) {
     val context = LocalContext.current
     val s = remember { AppSettings(context) }
     var interval by remember { mutableStateOf(s.rotationInterval) }
     var target by remember { mutableStateOf(s.rotationTarget) }
+    // Live: the live wallpaper moves through them itself, stars and prayer panel included.
+    var live by remember { mutableStateOf(s.rotationLive) }
     val chipColors = FilterChipDefaults.filterChipColors(
         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -54,18 +56,23 @@ fun RotationBar(count: Int, running: Boolean, onStart: (RotationInterval, Target
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((t, label) in listOf(Target.HOME to "Ana ekran", Target.LOCK to "Kilit ekranı", Target.BOTH to "İkisi de")) {
-                    FilterChip(selected = target == t, onClick = { target = t }, label = { Text(label) }, colors = chipColors)
+                    FilterChip(selected = !live && target == t, onClick = { target = t; live = false }, label = { Text(label) }, colors = chipColors)
                 }
+                FilterChip(selected = live, onClick = { live = true }, label = { Text("Canlı duvar kağıdı ✨") }, colors = chipColors)
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    if (count < 2) "En az 2, en fazla ${RotationSchedule.MAX} tasarım seç" else "$count tasarım sırayla değişecek",
+                    when {
+                        count < 2 -> "En az 2, en fazla ${RotationSchedule.MAX} tasarım seç"
+                        live -> "$count canlı tasarım, yumuşak geçişle değişecek"
+                        else -> "$count tasarım sırayla değişecek"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 if (running) TextButton(onClick = onStop) { Text("Durdur") }
-                Button(enabled = count >= 2, onClick = { onStart(interval, target) }) { Text(if (running) "Güncelle" else "Başlat") }
+                Button(enabled = count >= 2, onClick = { onStart(interval, target, live) }) { Text(if (running) "Güncelle" else "Başlat") }
             }
         }
     }
@@ -80,8 +87,8 @@ fun RotationIntroDialog(onTry: () -> Unit, onDismiss: () -> Unit) {
         text = {
             Text(
                 "Artık koleksiyondan ${RotationSchedule.MAX} taneye kadar duvar kağıdı seçebilirsin; HBSnoor onları " +
-                    "sırayla değiştirir: 10 dakikada bir, saatte bir ya da günde bir. Ana ekran, kilit ekranı ya da ikisi " +
-                    "için. Galeri'nin üstündeki ↻ düğmesine dokunup seçmeye başla. ✨",
+                    "sırayla değiştirir: 10 dakikada bir, saatte bir ya da günde bir. Ana ekran, kilit ekranı, ikisi " +
+                    "ya da yıldızları parlayan canlı duvar kağıdı için. Galeri'nin üstündeki ↻ düğmesine dokunup seçmeye başla. ✨",
             )
         },
         confirmButton = { Button(onClick = onTry) { Text("Seçmeye başla") } },

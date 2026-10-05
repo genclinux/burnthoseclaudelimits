@@ -50,7 +50,7 @@ object Work {
             wm.cancelUniqueWork(DAILY)
         }
         // The rotation runs on alarms; this hourly check only catches up if one was lost.
-        if (s.rotationOn) {
+        if (s.rotationOn && !s.rotationLive) {
             wm.enqueueUniquePeriodicWork(
                 ROTATION_CHECK, ExistingPeriodicWorkPolicy.KEEP,
                 PeriodicWorkRequestBuilder<RotationWorker>(1, TimeUnit.HOURS).build(),

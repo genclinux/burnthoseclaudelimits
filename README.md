@@ -83,7 +83,9 @@ Galeri, Vakitler, Kıble, Zikir and Takvim. Out of the box everything is set for
 - **Döngü: up to ten wallpapers in turn.** Tap ↻ above the gallery, tick up to
   ten designs (with your own palettes and settings) and choose how often they
   change: every 10 minutes, every hour or every day, on the home screen, the
-  lock screen or both. Changes land on the clock (10:00, 10:10…; on the hour;
+  lock screen or both, or on the **live wallpaper**: there the designs fade
+  from one to the next with the stars, shooting stars and prayer panel still
+  on top (the app offers to set the live wallpaper if it isn't already). Changes land on the clock (10:00, 10:10…; on the hour;
   at midnight), survive restarts, and catch up if the phone was asleep. It
   replaces the daily wallpaper while it runs; stop or edit it in the gallery or
   in *Ayarlar*. A popup introduces it the first time the app opens.

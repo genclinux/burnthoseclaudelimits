@@ -215,6 +215,13 @@ fun SettingsSheet(
             }
             SwitchRow("Vakte göre değişen tasarım", "Seherde şafak, öğlende çini, akşamda gün batımı, gece yıldızlar.", follows) {
                 follows = it; s.liveFollowsPrayer = it
+                // The live Döngü would outrank the day cycle, so one replaces the other.
+                if (it && rotating && s.rotationLive) {
+                    RotationAlarms.stop(context)
+                    rotating = false
+                    onRotationChanged()
+                    onMessage("Canlı döngü durduruldu; tasarım artık vakte göre değişecek")
+                }
             }
             FilledTonalButton(onClick = {
                 try {
@@ -256,8 +263,9 @@ fun SettingsSheet(
 
             Section("Duvar kağıdı döngüsü")
             Text(
-                if (rotating) "${RotationAlarms.designs(context).size} tasarım, ${s.rotationInterval.title.replaceFirstChar { it.lowercase() }} değişiyor."
-                else "Galeri'den 10 taneye kadar duvar kağıdı seç; 10 dakikada, saatte ya da günde bir sırayla değişsin. Günlük duvar kağıdının yerini alır.",
+                if (rotating) "${RotationAlarms.designs(context).size} tasarım, ${s.rotationInterval.title.replaceFirstChar { it.lowercase() }} değişiyor" +
+                    (if (s.rotationLive) " (canlı duvar kağıdında)." else ".")
+                else "Galeri'den 10 taneye kadar duvar kağıdı seç; 10 dakikada, saatte ya da günde bir sırayla değişsin, istersen canlı duvar kağıdında. Günlük duvar kağıdının yerini alır.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
