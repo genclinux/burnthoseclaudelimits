@@ -124,15 +124,17 @@ fun DedicationSheet(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
             )
             NameMeaning(
                 "Hanife · حنيفة",
-                "Hanîf: Hakk'a yönelen, dosdoğru inanan. Kur'an'da Hz. İbrahim böyle anılır.",
+                "Hanîf: Şirkten uzaklaşıp yalnızca Allah'a yönelen, tevhid ehli. Kur'an'da Hz. İbrahim'in imanı " +
+                    "böyle nitelenir (ör. Bakara 2:135).",
                 "فَأَقِمْ وَجْهَكَ لِلدِّينِ حَنِيفًا",
                 "Yüzünü hanîf olarak dine çevir. (Rûm 30:30)",
             )
             NameMeaning(
                 "Betül · بتول",
-                "Kendini bütünüyle Allah'a adayan. Hz. Meryem ve Hz. Fatıma'nın lakabıdır.",
+                "İffetli, Allah'a gönülden yönelmiş kadın. Hz. Meryem ve Hz. Fâtıma'nın lakaplarından biridir.",
                 "وَتَبَتَّلْ إِلَيْهِ تَبْتِيلًا",
                 "Bütün benliğinle O'na yönel. (Müzzemmil 73:8)",
+                note = "Betül ile aynı ب-ت-ل kökünden",
             )
             Text(
                 "İpuçları: her duvar kağıdının altındaki minik H·B yıldızına, gece göklerindeki " +
@@ -148,7 +150,7 @@ fun DedicationSheet(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun NameMeaning(title: String, meaning: String, verse: String, verseMeaning: String) {
+private fun NameMeaning(title: String, meaning: String, verse: String, verseMeaning: String, note: String? = null) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -167,5 +169,13 @@ private fun NameMeaning(title: String, meaning: String, verse: String, verseMean
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (note != null) {
+            Text(
+                note,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            )
+        }
     }
 }

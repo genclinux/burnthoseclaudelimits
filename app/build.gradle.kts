@@ -14,8 +14,8 @@ android {
         // scoped-storage saving permission-free and still covers older phones.
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     signingConfigs {

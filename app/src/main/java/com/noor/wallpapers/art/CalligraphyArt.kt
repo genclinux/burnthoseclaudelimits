@@ -9,6 +9,8 @@ class Phrase(
     val bare: String,
     val transliteration: String,
     val meaning: String,
+    /** Optional small line under the meaning. */
+    val note: String? = null,
 )
 
 object Phrases {
@@ -39,12 +41,13 @@ object Phrases {
         "maakum", "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", "وهو معكم أين ما كنتم",
         "Ve hüve meaküm eyne mâ küntüm", "Nerede olursanız olun, O sizinle beraberdir · Hadîd 57:4",
     )
-    // Hanife Betül's collection. Both of her names have roots in the Qur'an:
-    // hanīf (upright, turning sincerely to God) and batūl (wholly devoted to God),
-    // which shares its root with tabattal in al-Muzzammil 73:8.
+    // Hanife Betül's collection. Hanîf appears in the Qur'an itself (for Ibrahim's faith,
+    // and in Rum 30:30). Betül does not: al-Muzzammil 73:8 has tabattal, from the same
+    // b-t-l root, so the wallpaper says so rather than presenting it as her name's verse.
+    // Wording reviewed against Diyanet / TDV definitions.
     val HANIFE_BETUL = Phrase(
         "hanife-betul", "حَنِيفَة بَتُول", "حنيفة بتول",
-        "Hanife Betül", "Hanîf: Hakk'a yönelen · Betül: kendini Allah'a adayan",
+        "Hanife Betül", "Hanîf: yalnız Allah'a yönelen · Betül: iffetli, Allah'a gönülden yönelmiş",
     )
     val HANIF = Phrase(
         "hanif", "فَأَقِمْ وَجْهَكَ لِلدِّينِ حَنِيفًا", "فأقم وجهك للدين حنيفا",
@@ -53,6 +56,7 @@ object Phrases {
     val TABATTAL = Phrase(
         "tabattal", "وَتَبَتَّلْ إِلَيْهِ تَبْتِيلًا", "وتبتل إليه تبتيلا",
         "Ve tebettel ileyhi tebtîlâ", "Bütün benliğinle O'na yönel · Müzzemmil 73:8",
+        note = "Betül ile aynı ب-ت-ل kökünden",
     )
     val NUR = Phrase("nur", "نُور", "نور", "Nur", "YOLUN NUR OLSUN, HANİFE BETÜL")
     val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramazan-ı Kerîm", "HAYIRLI RAMAZANLAR")
@@ -119,6 +123,14 @@ object CalligraphyArt {
                     SolidFill(Colors.lighten(pal.line, 0.5f)), maxWidth = (ctx.safeW * 0.84).toFloat(), alpha = 0.75f,
                 ),
             )
+            p.phrase.note?.let { note ->
+                b.text(
+                    TextItem(
+                        note, FontId.LATIN, (26 * ctx.u).toFloat(), cx.toFloat(), (y + 112 * ctx.u).toFloat(),
+                        SolidFill(Colors.lighten(pal.line, 0.5f)), maxWidth = (ctx.safeW * 0.84).toFloat(), alpha = 0.55f,
+                    ),
+                )
+            }
         }
         Common.topShade(b, ctx)
         return b.build()
