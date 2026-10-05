@@ -36,21 +36,6 @@ jobs:
       - name: Build APKs
         run: ./gradlew --no-daemon assembleDebug assembleRelease
 
-      - name: Render previews
-        run: ./gradlew --no-daemon -p tools/preview run -Pscale=0.5
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: hbsnoor-apk
-          path: |
-            app/build/outputs/apk/release/app-release.apk
-            app/build/outputs/apk/debug/app-debug.apk
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: hbsnoor-previews
-          path: tools/preview/build/previews/*.png
-
       # Publishes the APK as a GitHub Release (creating the tag if needed).
       - name: Name release APK
         if: env.RELEASE_TAG != ''
@@ -72,11 +57,29 @@ jobs:
 
             Samsung Galaxy Tab S9 FE için ayarlandı; Android 10 ve üzeri her telefon ve tablette çalışır.
 
+      - name: Render previews
+        run: ./gradlew --no-daemon -p tools/preview run -Pscale=0.5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hbsnoor-apk
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hbsnoor-previews
+          path: tools/preview/build/previews/*.png
+
+
   # Renders every wallpaper on a real Android emulator (the real text stack and fonts)
   # and uploads the PNGs, so Arabic layout can be checked before it reaches a device.
   device-previews:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -112,3 +115,19 @@ jobs:
         with:
           name: hbsnoor-device-previews
           path: device-previews
+
+      - name: Contact sheets
+        run: |
+          pip install --quiet pillow
+          python3 .github/scripts/contact_sheet.py device-previews sheets
+
+      # Also published to the device-previews branch, readable with plain git.
+      - name: Push sheets to the device-previews branch
+        run: |
+          cd sheets
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Emulator renders for ${GITHUB_SHA}"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/device-previews
