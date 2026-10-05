@@ -8,6 +8,7 @@ enum class Category(val title: String, val arabic: String) {
     RAMADAN("Ramazan ve Bayram", "رمضان"),
     MIHRAB("Mihrap", "محراب"),
     EBRU("Ebru", "ابری"),
+    LEVHA("Levha", "لوحة"),
 }
 
 /**
@@ -129,6 +130,7 @@ object Catalog {
         add(mihrab("mihrab-lapis", "Lâcivert Mihrap", "lapis", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, Tiling.DODECAGON_HEXAGON_SQUARE))
 
         addAll(ebruEntries())
+        addAll(LevhaArt.entries())
     }
 
     private fun ebru(id: String, title: String, palette: String, style: Ebru.Style, seed: Int) =
