@@ -176,7 +176,7 @@ fun TesbihScreen(onMessage: (String) -> Unit, onOpenSettings: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize().padding(bottom = 12.dp),
         ) {
-            ScreenHeader("Zikir", subtitle = "Boncuklara dokun ya da ses tuşuna bas", onSettings = onOpenSettings)
+            ScreenHeader("Zikir", subtitle = "Dokun ya da ses tuşuna bas", onSettings = onOpenSettings)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = Noor.Gutter)) {
                 items(Dhikrs.ALL, key = { it.id }) { d ->
                     NoorChip(d.title, d.id == preset.id) {

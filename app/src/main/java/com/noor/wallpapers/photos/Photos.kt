@@ -33,6 +33,10 @@ object Photos {
 
     @Volatile private var memo: Pair<Long, List<Photo>>? = null
 
+    /** Why the last search failed, shown when there is nothing to show. */
+    @Volatile var lastError: String? = null
+        private set
+
     private val thumbs = object : LruCache<Long, Bitmap>(24 * 1024 * 1024) {
         override fun sizeOf(key: Long, value: Bitmap) = value.byteCount
     }
@@ -58,7 +62,7 @@ object Photos {
      * Searches Commons for every place whose results are missing or a month
      * old, a few at a time. A place that fails keeps its old results.
      */
-    suspend fun refresh(context: Context, force: Boolean = false): List<Photo> = withContext(Dispatchers.IO) {
+    suspend fun refresh(context: Context, force: Boolean = false, onProgress: (List<Photo>) -> Unit = {}): List<Photo> = withContext(Dispatchers.IO) {
         val gate = Semaphore(4)
         coroutineScope {
             Places.ALL.map { place ->
@@ -73,7 +77,9 @@ object Photos {
                             val tmp = File(f.path + ".tmp")
                             tmp.writeText(text)
                             tmp.renameTo(f)
-                        }
+                            // Show each place as it arrives (Pendik's are asked for first) instead of after all of them.
+                            onProgress(cached(context))
+                        }.onFailure { lastError = it.message ?: it.javaClass.simpleName }
                     }
                 }
             }.awaitAll()

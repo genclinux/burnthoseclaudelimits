@@ -44,7 +44,7 @@ class AppScreenshotTest {
         // Then the screens themselves, with nothing in front of them.
         sp.edit().putStringSet("seen_features", WhatsNew.ALL.map { it.id }.toSet()).commit()
         shot("01-galeri", "galeri")
-        shot("02-fotograflar", MainActivity.TAB_PHOTOS, waitMs = 15_000)
+        shot("02-fotograflar", MainActivity.TAB_PHOTOS, waitMs = 40_000)
         shot("03-vakitler", MainActivity.TAB_PRAYER)
         shot("04-kible", "kible")
         shot("05-zikir", "zikir")

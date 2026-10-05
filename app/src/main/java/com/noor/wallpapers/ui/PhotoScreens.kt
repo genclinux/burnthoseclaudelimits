@@ -97,7 +97,7 @@ fun PhotoGrid(
     LaunchedEffect(attempt) {
         loading = true
         if (photos == null) photos = withContext(Dispatchers.IO) { Photos.cached(context) }
-        photos = runCatching { Photos.refresh(context) }.getOrDefault(photos)
+        photos = runCatching { Photos.refresh(context) { photos = it } }.getOrDefault(photos)
         loading = false
     }
 
@@ -124,6 +124,7 @@ fun PhotoGrid(
                         Text("Fotoğraflar getiriliyor…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         Text("Fotoğraflar için bir kez internet gerekiyor.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Photos.lastError?.let { Footnote("($it)") }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = { attempt++ }) { Text("Tekrar dene") }
                     }

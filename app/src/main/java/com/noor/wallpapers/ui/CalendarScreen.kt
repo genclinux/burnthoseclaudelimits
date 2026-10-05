@@ -157,7 +157,7 @@ private fun MonthGrid(
             Row(Modifier.fillMaxWidth()) {
                 for (c in 0 until 7) {
                     val index = r * 7 + c - lead
-                    Box(Modifier.weight(1f).aspectRatio(0.9f).padding(2.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.weight(1f).aspectRatio(0.8f).padding(2.dp), contentAlignment = Alignment.Center) {
                         if (index in 0 until days) {
                             val date = month.atDay(index + 1)
                             val isToday = date == today
@@ -167,16 +167,17 @@ private fun MonthGrid(
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .clip(MaterialTheme.shapes.small)
                                     .background(if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent)
-                                    .then(if (isSpecial) Modifier.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)) else Modifier),
+                                    .then(if (isSpecial) Modifier.border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
                             ) {
                                 Text(
                                     "${index + 1}",
                                     fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                    lineHeight = 18.sp,
                                     color = if (date.dayOfWeek.value == 5) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 )
-                                Text("${hijri.of(date).day}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${hijri.of(date).day}", fontSize = 10.sp, lineHeight = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
