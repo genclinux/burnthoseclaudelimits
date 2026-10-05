@@ -112,8 +112,14 @@ class StrokeItem(
 ) : Item
 
 /**
- * A single line of text centred horizontally on [cx], vertically centred on [cy]
- * using the font's ascent/descent. Renderers shrink [size] until the text fits [maxWidth].
+ * A single line of text centred horizontally on [cx]. Renderers shrink [size]
+ * until the text fits [maxWidth].
+ *
+ * Vertically, plain text is centred on [cy] using the font's ascent/descent.
+ * With [inkCentered], the glyphs actually drawn (including Arabic vowel marks and
+ * the long descending strokes of Ruqaa and Naskh) are centred on [cy] and shrunk
+ * to at most [maxHeight] tall, so the text is guaranteed to stay inside
+ * cy ± maxHeight / 2 and nothing placed outside that band can collide with it.
  */
 class TextItem(
     val text: String,
@@ -127,6 +133,8 @@ class TextItem(
     val glowColor: Int = 0,
     val glowRadius: Float = 0f,
     val letterSpacing: Float = 0f,
+    val maxHeight: Float = Float.MAX_VALUE,
+    val inkCentered: Boolean = false,
 ) : Item
 
 class GroupItem(val items: List<Item>, val clip: Path? = null, val alpha: Float = 1f) : Item

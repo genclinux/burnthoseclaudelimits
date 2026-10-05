@@ -99,13 +99,16 @@ object CalligraphyArt {
         val size = if (p.medallion) 250 * ctx.u else 170 * ctx.u
         b.text(
             TextItem(
-                text, font, size.toFloat(), cx.toFloat(), (cy + if (p.script == Script.NASKH) 0.0 else -10 * ctx.u).toFloat(),
+                text, font, size.toFloat(), cx.toFloat(), cy.toFloat(),
                 LinearFill(
                     0f, (cy - size / 2).toFloat(), 0f, (cy + size / 2).toFloat(),
                     intArrayOf(Colors.lighten(pal.line, 0.35f), pal.line, Colors.darken(pal.line, 0.15f)),
                 ),
                 maxWidth = maxWidth.toFloat(),
                 glowColor = Colors.withAlpha(pal.glow, 0.55f), glowRadius = (18 * ctx.u).toFloat(),
+                // Stay inside the medallion's disc / the frame, marks and descenders included.
+                maxHeight = (if (p.medallion) r * 0.95 else hh * 1.3).toFloat(),
+                inkCentered = true,
             ),
         )
 

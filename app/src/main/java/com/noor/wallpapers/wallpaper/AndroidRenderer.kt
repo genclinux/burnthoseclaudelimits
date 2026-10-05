@@ -77,8 +77,18 @@ class AndroidRenderer(context: Context) {
         paint.textAlign = Paint.Align.CENTER
         val width = paint.measureText(t.text)
         if (width > t.maxWidth) paint.textSize = t.size * t.maxWidth / width
-        val fm = paint.fontMetrics
-        val baseline = t.cy - (fm.ascent + fm.descent) / 2f
+        val baseline = if (t.inkCentered) {
+            val ink = android.graphics.Rect()
+            paint.getTextBounds(t.text, 0, t.text.length, ink)
+            if (ink.height() > t.maxHeight) {
+                paint.textSize *= t.maxHeight / ink.height()
+                paint.getTextBounds(t.text, 0, t.text.length, ink)
+            }
+            t.cy - (ink.top + ink.bottom) / 2f
+        } else {
+            val fm = paint.fontMetrics
+            t.cy - (fm.ascent + fm.descent) / 2f
+        }
 
         if (t.glowRadius > 0f && t.glowColor != 0) {
             val glow = Paint(paint)

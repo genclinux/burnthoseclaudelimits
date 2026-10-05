@@ -38,6 +38,9 @@ object MihrabArt {
                 p.inscription.arabic, FontId.NASKH_BOLD, (72 * u).toFloat(), cx.toFloat(),
                 (alfizTop + 90 * u).toFloat(), SolidFill(pal.line), maxWidth = (outerW * 0.95).toFloat(),
                 glowColor = Colors.withAlpha(pal.glow, 0.4f), glowRadius = (8 * u).toFloat(),
+                // Keep clear of the arch's apex below the band.
+                maxHeight = (110 * u).toFloat(),
+                inkCentered = true,
             ),
         )
 

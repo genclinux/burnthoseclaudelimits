@@ -78,7 +78,7 @@ On the detail screen you can:
 ## Install
 
 **Download the APK from [Releases](https://github.com/genclinux/burnthoseclaudelimits/releases/latest)**
-(`HBSnoor-v1.0.0.apk`), open it on the tablet, and allow *Install unknown apps*
+(`HBSnoor-v1.0.x.apk`), open it on the tablet, and allow *Install unknown apps*
 when asked. Every release is signed with the same key, so newer versions
 install as updates.
 

@@ -4,6 +4,9 @@ import kotlin.math.PI
 
 /** Ramadan and Eid: hanging fanous lanterns, a crescent and greeting calligraphy. */
 object LanternArt {
+    /** Half the tallest the greeting calligraphy may be, in design pixels. */
+    private const val CALLIGRAPHY_HALF_HEIGHT = 110.0
+
     class Params(val phrase: Phrase, val script: CalligraphyArt.Script = CalligraphyArt.Script.RUQAA)
 
     /**
@@ -86,12 +89,15 @@ object LanternArt {
                 ),
                 maxWidth = (ctx.safeW * 0.82).toFloat(),
                 glowColor = Colors.withAlpha(pal.glow, 0.6f), glowRadius = (20 * ctx.u).toFloat(),
+                maxHeight = (2 * CALLIGRAPHY_HALF_HEIGHT * ctx.u).toFloat(),
+                inkCentered = true,
             ),
         )
         b.text(
             TextItem(
                 p.phrase.meaning.uppercase(java.util.Locale.forLanguageTag("tr")), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
-                (ty + 150 * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
+                // The calligraphy's ink ends at ty + CALLIGRAPHY_HALF_HEIGHT; leave a clear gap below it.
+                (ty + (CALLIGRAPHY_HALF_HEIGHT + 55) * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
                 alpha = 0.9f, letterSpacing = 0.25f,
             ),
         )

@@ -23,6 +23,7 @@ import java.awt.MultipleGradientPaint
 import java.awt.RadialGradientPaint
 import java.awt.RenderingHints
 import java.awt.font.TextAttribute
+import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.Path2D
 import java.awt.geom.Point2D
@@ -90,9 +91,18 @@ class Java2DRenderer(fontDir: File) {
             font = font.deriveFont(t.size * t.maxWidth / width)
             fm = g.getFontMetrics(font)
         }
+        var y = t.cy + (fm.ascent - fm.descent) / 2f
+        if (t.inkCentered) {
+            var ink = TextLayout(t.text, font, g.fontRenderContext).bounds
+            if (ink.height > t.maxHeight) {
+                font = font.deriveFont(font.size2D * t.maxHeight / ink.height.toFloat())
+                fm = g.getFontMetrics(font)
+                ink = TextLayout(t.text, font, g.fontRenderContext).bounds
+            }
+            y = (t.cy - (ink.minY + ink.maxY) / 2).toFloat()
+        }
         g.font = font
         val x = t.cx - fm.stringWidth(t.text) / 2f
-        val y = t.cy + (fm.ascent - fm.descent) / 2f
         if (t.glowRadius > 0f && t.glowColor != 0) {
             // Java2D has no blur; fake the glow with faint offset copies.
             g.color = color(Colors.withAlpha(t.glowColor, 0.08f))
