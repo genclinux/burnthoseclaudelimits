@@ -84,6 +84,7 @@ object NightArt {
         } else {
             b.fill(Path().rect(0, ground, ctx.w, ctx.h), silhouette)
         }
+        Textures.grainOverlay(b, ctx, 0.4f)
         Common.vignette(b, ctx, 0.45f)
         return b.build()
     }

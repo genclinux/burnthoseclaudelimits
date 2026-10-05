@@ -135,6 +135,7 @@ object CalligraphyArt {
                 )
             }
         }
+        Textures.grainOverlay(b, ctx, 0.35f)
         Common.topShade(b, ctx)
         return b.build()
     }

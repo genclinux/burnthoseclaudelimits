@@ -74,6 +74,7 @@ object MihrabArt {
         val apexY = bottom - outerH + band * 1.4
         val lampY = apexY + outerH * 0.33
         lamp(b, ctx, cx, apexY, lampY, 150 * u)
+        Textures.grainOverlay(b, ctx, 0.45f)
         Common.vignette(b, ctx, 0.5f)
         Common.topShade(b, ctx, 0.25f)
         return b.build()

@@ -101,6 +101,7 @@ object LanternArt {
                 alpha = 0.9f, letterSpacing = 0.25f,
             ),
         )
+        Textures.grainOverlay(b, ctx, 0.35f)
         Common.vignette(b, ctx, 0.4f)
         return b.build()
     }
