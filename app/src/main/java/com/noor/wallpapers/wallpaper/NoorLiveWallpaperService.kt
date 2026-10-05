@@ -26,11 +26,11 @@ class NoorLiveWallpaperService : WallpaperService() {
         private val prefs = Prefs(this@NoorLiveWallpaperService)
         private val renderer = AndroidRenderer(this@NoorLiveWallpaperService)
 
-        private var width = 0
-        private var height = 0
+        @Volatile private var width = 0
+        @Volatile private var height = 0
         private var still: Bitmap? = null
         private var ctx: RenderContext? = null
-        private var visible = false
+        @Volatile private var visible = false
         private val start = SystemClock.uptimeMillis()
 
         private val frame = object : Runnable {
@@ -62,8 +62,11 @@ class NoorLiveWallpaperService : WallpaperService() {
 
         override fun onVisibilityChanged(visible: Boolean) {
             this.visible = visible
-            handler.removeCallbacks(frame)
-            if (visible) handler.post(frame)
+            // Reschedule on the render thread so two frame loops can never overlap.
+            handler.post {
+                handler.removeCallbacks(frame)
+                if (this.visible) handler.post(frame)
+            }
         }
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
@@ -93,7 +96,7 @@ class NoorLiveWallpaperService : WallpaperService() {
             val holder = surfaceHolder
             var canvas: Canvas? = null
             try {
-                canvas = holder.lockHardwareCanvas()
+                canvas = holder.lockHardwareCanvas() ?: return
                 canvas.drawColor(Color.BLACK)
                 canvas.drawBitmap(bmp, 0f, 0f, null)
                 val t = (SystemClock.uptimeMillis() - start) / 1000.0

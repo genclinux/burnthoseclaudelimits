@@ -105,6 +105,8 @@ fun DetailScreen(
     }
 
     fun act(done: String, action: suspend (Bitmap) -> Unit) {
+        // While a new palette/seed renders, `full` still holds the previous image.
+        if (rendering) return
         val bmp = full ?: return
         scope.launch {
             busy = true
@@ -179,7 +181,7 @@ fun DetailScreen(
                     }
                     Button(
                         onClick = { sheet = true },
-                        enabled = full != null && !busy,
+                        enabled = full != null && !busy && !rendering,
                         modifier = Modifier.weight(1f).height(52.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp),
                     ) { Text("Set wallpaper") }

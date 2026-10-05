@@ -55,7 +55,10 @@ object Wallpapers {
             val b = wm.maximumWindowMetrics.bounds
             b.width() to b.height()
         } else {
-            val m = context.resources.displayMetrics
+            // displayMetrics excludes the system bars; the wallpaper must cover the whole panel.
+            val m = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getRealMetrics(m)
             m.widthPixels to m.heightPixels
         }
         val width = minOf(w, h).takeIf { it > 0 } ?: RenderContext.REFERENCE_WIDTH
