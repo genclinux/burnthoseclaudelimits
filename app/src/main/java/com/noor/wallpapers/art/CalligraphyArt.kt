@@ -54,7 +54,7 @@ object Phrases {
         "tabattal", "وَتَبَتَّلْ إِلَيْهِ تَبْتِيلًا", "وتبتل إليه تبتيلا",
         "Ve tebettel ileyhi tebtîlâ", "Bütün benliğinle O'na yönel · Müzzemmil 73:8",
     )
-    val NUR = Phrase("nur", "نُور", "نور", "Nur", "NUR İÇİNDE KAL, HANİFE BETÜL")
+    val NUR = Phrase("nur", "نُور", "نور", "Nur", "YOLUN NUR OLSUN, HANİFE BETÜL")
     val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramazan-ı Kerîm", "HAYIRLI RAMAZANLAR")
     val EID = Phrase("eid", "عِيدٌ مُبَارَكٌ", "عيد مبارك", "Îd Mübârek", "BAYRAMINIZ MÜBAREK OLSUN")
 }

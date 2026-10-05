@@ -89,7 +89,7 @@ fun GalleryScreen(
                             }
                         },
                     ) {
-                        Text("Nur · نور", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                        Text("HBSnoor", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                         Text(
                             greeting,
                             style = MaterialTheme.typography.labelMedium,

@@ -9,11 +9,11 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
 
-/** Phone = OPPO Find X9 Pro; tablet = a typical 7:5 tablet (2800 x 2000) both ways up. */
+/** Phone = OPPO Find X9 Pro; tablet = Samsung Galaxy Tab S9 FE (10.9" LCD, 2304 x 1440) both ways up. */
 enum class Device(val width: Int, val height: Int, val tablet: Boolean) {
     PHONE(RenderContext.REFERENCE_WIDTH, RenderContext.REFERENCE_HEIGHT, false),
-    TABLET_PORTRAIT(2000, 2800, true),
-    TABLET_LANDSCAPE(2800, 2000, true),
+    TABLET_PORTRAIT(1440, 2304, true),
+    TABLET_LANDSCAPE(2304, 1440, true),
 }
 
 /**

@@ -30,7 +30,7 @@ import java.time.DayOfWeek
 import java.time.LocalDateTime
 
 /**
- * Everything personal in the app. Nur was made for Hanife Betül, and these
+ * Everything personal in the app. HBSnoor was made for Hanife Betül, and these
  * easter eggs are meant to be found. The art has its own: an "HB" constellation
  * in every night sky, a tiny H·B star at the foot of every wallpaper, her own
  * collection and palette, and a shooting star in the live wallpaper.
@@ -92,7 +92,7 @@ fun WelcomeDialog(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
         },
         text = {
             Text(
-                "Nur senin için yapıldı. İçinde sana özel bir koleksiyon, senin adını taşıyan bir renk " +
+                "HBSnoor senin için yapıldı. İçinde sana özel bir koleksiyon, senin adını taşıyan bir renk " +
                     "paleti ve uygulamanın her köşesine saklanmış (pek de gizli olmayan) sürprizler var. " +
                     "Bakalım hepsini bulabilecek misin? ✨",
             )
@@ -102,7 +102,7 @@ fun WelcomeDialog(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-/** Opened from the ✦ button or by tapping the "Nur" title five times. */
+/** Opened from the ✦ button or by tapping the "HBSnoor" title five times. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DedicationSheet(onOpenCollection: () -> Unit, onDismiss: () -> Unit) {

@@ -1,4 +1,4 @@
-# Nur · نور — Islamic wallpapers, made for Hanife Betül
+# HBSnoor — Islamic wallpapers, made for Hanife Betül
 
 An Android app that draws Islamic art on the device at its native resolution, so
 nothing is downloaded and nothing is upscaled. It is tuned for the
@@ -21,7 +21,7 @@ for her (in Turkish):
 - **Her own collection**, first in the gallery: her name in a calligraphy
   medallion, and the two verses her names come from. *Hanîf* is in Rûm 30:30.
   *Betül* shares its root with *tebettül* in Müzzemmil 73:8. The collection
-  also has a dusk mosque, a "Nur" lantern scene, a mihrab with her name
+  also has a dusk mosque, a "Nur" lantern scene (*Yolun nur olsun, Hanife Betül*), a mihrab with her name
   inscribed, and a rosette.
 - **A "Hanife Betül" palette** (rose gold, deep teal, dusty rose and sage) that
   works on every design.
@@ -31,11 +31,13 @@ for her (in Turkish):
 - **Greetings** in the header: time-of-day greetings, Friday greetings (Hayırlı
   Cumalar), and Ramadan and Eid greetings worked out from the Hijri calendar.
 - **A welcome note** on first launch. A **✦ button** (or five taps on the
-  "Nur" title) opens a dedication page explaining what her names mean.
+  "HBSnoor" title) opens a dedication page explaining what her names mean.
 - **Personal messages** when she sets a wallpaper, a compliment on every
   seventh shuffle, and a personal note when her favourites list is empty.
 
 ## Phones and tablets
+
+The target tablet is the **Samsung Galaxy Tab S9 FE** (10.9" LCD, 2304 × 1440). The previews below are rendered at that resolution.
 
 On a phone the wallpaper is rendered at the exact panel size. A tablet can be
 held either way up, so the app renders a square wallpaper as wide as the
@@ -69,7 +71,7 @@ On the detail screen you can:
   rendered at the exact panel size, so ColorOS doesn't crop or scroll it.
 - Pick **Live wallpaper** for the same design with slowly twinkling stars and a
   drifting band of light. It animates only while visible, at 20 fps.
-- **Save** a PNG to `Pictures/Nur` (no storage permission needed).
+- **Save** a PNG to `Pictures/HBSnoor` (no storage permission needed).
 - Add designs to **Favourites**. Your palette and seed choices are remembered for
   each design.
 
@@ -81,7 +83,7 @@ debug key, so it installs directly:
 
 1. On the Find X9 Pro, open the APK and allow *Install unknown apps* for your
    browser or file manager when ColorOS asks.
-2. Open **Nur**, choose a design, then tap **Duvar kağıdı yap** (Set wallpaper).
+2. Open **HBSnoor**, choose a design, then tap **Duvar kağıdı yap** (Set wallpaper).
 
 To build it yourself, use JDK 17 and the Android SDK (API 36):
 

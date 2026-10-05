@@ -37,13 +37,15 @@ object LanternArt {
 
         // A tablet's square safe area is much shorter than a phone screen, so tighten the layout.
         val square = ctx.safeH < ctx.safeW * 1.5
-        val moonX = ctx.x(0.76)
+        val lanterns = layout(ctx)
+        // On a tablet the moon shares the lanterns' band, so hang it in the widest gap between them.
+        val moonX = ctx.x(if (square) widestGap(lanterns.map { it.first }.filter { it in 0.0..1.0 }) else 0.76)
         val moonY = ctx.y(if (square) 0.30 else 0.42)
         Common.glow(b, moonX, moonY, 300 * ctx.u, pal.glow, 0.3f)
         b.fill(Common.crescent(moonX, moonY, 120 * ctx.u, rotation = -0.9), pal.line)
         b.fill(Common.star(moonX + 10 * ctx.u, moonY + 20 * ctx.u, 34 * ctx.u, 14 * ctx.u, 5), pal.glow)
 
-        for ((fx, len, size) in layout(ctx)) {
+        for ((fx, len, size) in lanterns) {
             val x = ctx.x(fx)
             if (x < -size * ctx.u || x > ctx.w + size * ctx.u) continue
             lantern(b, ctx, x, ctx.y(if (square) len * 0.7 else len), size * ctx.u)
@@ -55,7 +57,17 @@ object LanternArt {
         val ground = ctx.safeTop + ctx.safeH
         val (body, windows) = NightArt.mosque(ctx, NightArt.Architecture.OTTOMAN, ctx.cx, ground, ctx.random(57))
         b.fill(body, Colors.darken(pal.bgBottom, 0.6f), 0.9f)
-        b.fill(Path().rect(0, ground, ctx.w, ctx.h), Colors.darken(pal.bgBottom, 0.6f), 0.9f)
+        // Below the safe area (a tablet held upright), let the ground fade back into the night.
+        if (ctx.h > ground) {
+            b.fill(
+                Path().rect(0, ground, ctx.w, ctx.h),
+                LinearFill(
+                    0f, ground.toFloat(), 0f, ctx.h.toFloat(),
+                    intArrayOf(Colors.darken(pal.bgBottom, 0.6f), Colors.withAlpha(Colors.darken(pal.bgBottom, 0.6f), 0.35f)),
+                ),
+                0.9f,
+            )
+        }
         b.fill(windows, pal.glow, 0.6f)
 
         val font = when (p.script) {
@@ -85,6 +97,12 @@ object LanternArt {
         )
         Common.vignette(b, ctx, 0.4f)
         return b.build()
+    }
+
+    /** Centre of the widest horizontal gap between lanterns at [xs], within 0.08..0.92. */
+    private fun widestGap(xs: List<Double>): Double {
+        val edges = (listOf(0.08) + xs.sorted() + listOf(0.92))
+        return edges.zipWithNext().maxBy { (a, b) -> b - a }.let { (a, b) -> (a + b) / 2 }
     }
 
     /** A fanous: ring, domed cap, three visible glass panes, banded base and a pointed foot. */

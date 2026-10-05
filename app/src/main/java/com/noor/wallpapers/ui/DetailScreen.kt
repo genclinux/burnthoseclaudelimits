@@ -187,7 +187,7 @@ fun DetailScreen(
                     }
                     RoundAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Favori", onToggleFavorite)
                     RoundAction(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet") {
-                        act({ "Resimler/Nur klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "nur-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
+                        act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
                     }
                     Button(
                         onClick = { sheet = true },
