@@ -139,8 +139,8 @@ class AppSettings(context: Context) {
 
     /** Palette id the app's own colours follow; null = the original emerald and gold. */
     var themePalette: String?
-        get() = sp.getString("theme_palette", null)
-        set(v) = sp.edit().putString("theme_palette", v).apply()
+        get() = sp.getString(KEY_THEME, null)
+        set(v) = sp.edit().putString(KEY_THEME, v).apply()
 
     /** Saved custom palettes (palette ids, which carry their colours). */
     var customPalettes: List<String>
@@ -160,8 +160,8 @@ class AppSettings(context: Context) {
 
     /** The hidden Lâle · Hilâl · Allah design, unlocked from the tesbih. */
     var secretUnlocked: Boolean
-        get() = sp.getBoolean("secret_unlocked", false)
-        set(v) = sp.edit().putBoolean("secret_unlocked", v).apply()
+        get() = sp.getBoolean(KEY_SECRET, false)
+        set(v) = sp.edit().putBoolean(KEY_SECRET, v).apply()
 
     // Tesbih -----------------------------------------------------------------------
 
@@ -194,6 +194,8 @@ class AppSettings(context: Context) {
         const val KEY_OVERLAY_POSITION = "overlay_position"
         const val KEY_OVERLAY_STYLE = "overlay_style"
         const val KEY_LIVE_FOLLOWS = "live_follows_prayer"
+        const val KEY_THEME = "theme_palette"
+        const val KEY_SECRET = "secret_unlocked"
 
         /** Keys the live wallpaper redraws for. */
         val LIVE_KEYS = setOf(KEY_PRAYER_VERSION, KEY_OVERLAY_POSITION, KEY_OVERLAY_STYLE, KEY_LIVE_FOLLOWS, "birthday")

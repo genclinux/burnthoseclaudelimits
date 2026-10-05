@@ -1,6 +1,7 @@
 package com.noor.wallpapers.service
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -62,6 +63,8 @@ object Notifications {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
+    // permitted() checks POST_NOTIFICATIONS first; lint can't see through it.
+    @SuppressLint("MissingPermission")
     private fun post(context: Context, id: Int, channel: String, title: String, text: String, big: String? = null) {
         if (!permitted(context)) return
         ensureChannels(context)

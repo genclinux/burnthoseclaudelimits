@@ -118,9 +118,12 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { Prefs(context) }
     val settings = remember { AppSettings(context) }
-    val version = rememberSettingsVersion()
+    // Only the settings this level shows; a tesbih tap must not recompose the whole app.
+    val version = rememberSettingsVersion(setOf(AppSettings.KEY_THEME, AppSettings.KEY_SECRET))
     var themeVersion by remember { mutableIntStateOf(0) }
-    val theme = remember(themeVersion, version) { settings.themePalette?.let(Palette::byId) }
+    // Keyed on the id so unrelated setting changes (every tesbih tap) don't rebuild the theme.
+    val themeId = remember(themeVersion, version) { settings.themePalette }
+    val theme = remember(themeId) { themeId?.let(Palette::byId) }
 
     NoorTheme(theme) {
         var tab by rememberSaveable { mutableStateOf(Tab.PRAYER) }

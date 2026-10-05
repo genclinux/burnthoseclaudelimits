@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.noor.wallpapers.art.Colors
 import com.noor.wallpapers.art.Palette
@@ -70,7 +71,10 @@ fun schemeFor(p: Palette?): ColorScheme {
     )
 }
 
+private val NoorTypography = Typography()
+
 @Composable
 fun NoorTheme(palette: Palette? = null, content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = schemeFor(palette), typography = Typography(), content = content)
+    val scheme = remember(palette) { schemeFor(palette) }
+    MaterialTheme(colorScheme = scheme, typography = NoorTypography, content = content)
 }

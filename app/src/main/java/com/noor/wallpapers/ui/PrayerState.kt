@@ -18,15 +18,18 @@ import com.noor.wallpapers.service.PrayerRepository
 import kotlinx.coroutines.delay
 import java.time.Instant
 
-/** Increments whenever any app setting changes, so screens re-read what they show. */
+/**
+ * Increments whenever an app setting changes (any, or only those in [keys]),
+ * so screens re-read what they show.
+ */
 @Composable
-fun rememberSettingsVersion(): Int {
+fun rememberSettingsVersion(keys: Set<String>? = null): Int {
     val context = LocalContext.current
     var version by remember { mutableIntStateOf(0) }
     DisposableEffect(context) {
         val settings = AppSettings(context)
         // SharedPreferences holds listeners weakly; this one lives as long as the effect.
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> version++ }
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (keys == null || (key != null && key in keys)) version++ }
         settings.register(listener)
         onDispose { settings.unregister(listener) }
     }
