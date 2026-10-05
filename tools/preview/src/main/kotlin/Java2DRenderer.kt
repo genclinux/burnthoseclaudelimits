@@ -91,18 +91,20 @@ class Java2DRenderer(fontDir: File) {
             font = font.deriveFont(t.size * t.maxWidth / width)
             fm = g.getFontMetrics(font)
         }
+        var x = t.cx - fm.stringWidth(t.text) / 2f
         var y = t.cy + (fm.ascent - fm.descent) / 2f
         if (t.inkCentered) {
-            var ink = TextLayout(t.text, font, g.fontRenderContext).bounds
-            if (ink.height > t.maxHeight) {
-                font = font.deriveFont(font.size2D * t.maxHeight / ink.height.toFloat())
-                fm = g.getFontMetrics(font)
-                ink = TextLayout(t.text, font, g.fontRenderContext).bounds
-            }
-            y = (t.cy - (ink.minY + ink.maxY) / 2).toFloat()
+            // Same rule as the app: fit and centre the pixels actually drawn.
+            font = fonts.getValue(t.font).deriveFont(t.size)
+            if (t.letterSpacing != 0f) font = font.deriveFont(mapOf(TextAttribute.TRACKING to t.letterSpacing))
+            val ink = inkBounds(t.text, font)
+            val k = minOf(1f, t.maxWidth / ink[2], t.maxHeight / ink[3])
+            font = font.deriveFont(font.size2D * k)
+            fm = g.getFontMetrics(font)
+            x = t.cx - (ink[0] + ink[2] / 2) * k
+            y = t.cy - (ink[1] + ink[3] / 2) * k
         }
         g.font = font
-        val x = t.cx - fm.stringWidth(t.text) / 2f
         if (t.glowRadius > 0f && t.glowColor != 0) {
             // Java2D has no blur; fake the glow with faint offset copies.
             g.color = color(Colors.withAlpha(t.glowColor, 0.08f))
@@ -115,6 +117,37 @@ class Java2DRenderer(fontDir: File) {
         g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (alpha * t.alpha).coerceIn(0f, 1f))
         g.paint = paint(t.fill)
         g.drawString(t.text, x, y)
+    }
+
+    /** Ink box [left, top, width, height] relative to (text origin, baseline), from pixels. */
+    private fun inkBounds(text: String, font: Font): FloatArray {
+        val size = font.size2D
+        val probe = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY).createGraphics()
+        val advance = probe.getFontMetrics(font).stringWidth(text)
+        probe.dispose()
+        val w = (advance * 1.5f + size * 3).toInt()
+        val h = (size * 5).toInt()
+        val ox = size * 1.5f
+        val oy = size * 3f
+        val img = BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY)
+        val g = img.createGraphics()
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+        g.color = Color.WHITE
+        g.font = font
+        g.drawString(text, ox, oy)
+        g.dispose()
+        val raster = img.raster
+        var minX = Int.MAX_VALUE; var maxX = -1; var minY = Int.MAX_VALUE; var maxY = -1
+        for (yy in 0 until h) for (xx in 0 until w) {
+            if (raster.getSample(xx, yy, 0) > 8) {
+                if (xx < minX) minX = xx
+                if (xx > maxX) maxX = xx
+                if (yy < minY) minY = yy
+                if (yy > maxY) maxY = yy
+            }
+        }
+        if (maxX < 0) return floatArrayOf(0f, -size, advance.toFloat(), size)
+        return floatArrayOf(minX - ox, minY - oy, (maxX + 1 - minX).toFloat(), (maxY + 1 - minY).toFloat())
     }
 
     private fun color(c: Int) = Color(Colors.red(c), Colors.green(c), Colors.blue(c), Colors.alpha(c))

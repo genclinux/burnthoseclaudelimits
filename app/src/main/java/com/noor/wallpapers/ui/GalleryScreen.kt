@@ -70,7 +70,7 @@ fun GalleryScreen(
     onOpen: (Selection) -> Unit,
     onDedication: () -> Unit,
 ) {
-    val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     val greeting = remember { HanifeBetul.greeting() }
     var titleTaps by remember { mutableIntStateOf(0) }
     Scaffold(
@@ -149,6 +149,15 @@ fun GalleryScreen(
                     favorite = sel.entryId in favorites,
                     onToggleFavorite = { onToggleFavorite(sel.entryId) },
                     onClick = { onOpen(sel) },
+                )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    "HBSnoor · Sürüm ${rememberVersionName()}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
         }
@@ -236,5 +245,15 @@ private fun WallpaperCard(
                 )
             }
         }
+    }
+}
+
+/** The installed versionName, so it's easy to tell which build is on the device. */
+@Composable
+fun rememberVersionName(): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    return remember {
+        @Suppress("DEPRECATION")
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
     }
 }

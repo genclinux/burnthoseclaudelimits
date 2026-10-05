@@ -71,3 +71,40 @@ jobs:
             **Kurulum:** `HBSnoor-${{ env.RELEASE_TAG }}.apk` dosyasını tablete indirip açın. Sorulursa "bilinmeyen uygulamaları yükle" iznini verin.
 
             Samsung Galaxy Tab S9 FE için ayarlandı; Android 10 ve üzeri her telefon ve tablette çalışır.
+
+  # Renders every wallpaper on a real Android emulator (the real text stack and fonts)
+  # and uploads the PNGs, so Arabic layout can be checked before it reaches a device.
+  device-previews:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Render on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            ./gradlew --no-daemon connectedDebugAndroidTest
+            adb pull /sdcard/Android/data/com.noor.wallpapers/files/device-previews device-previews
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hbsnoor-device-previews
+          path: device-previews

@@ -75,19 +75,20 @@ class AndroidRenderer(context: Context) {
         paint.textSize = t.size
         paint.letterSpacing = t.letterSpacing
         paint.textAlign = Paint.Align.CENTER
-        val width = paint.measureText(t.text)
-        if (width > t.maxWidth) paint.textSize = t.size * t.maxWidth / width
-        val baseline = if (t.inkCentered) {
-            val ink = android.graphics.Rect()
-            paint.getTextBounds(t.text, 0, t.text.length, ink)
-            if (ink.height() > t.maxHeight) {
-                paint.textSize *= t.maxHeight / ink.height()
-                paint.getTextBounds(t.text, 0, t.text.length, ink)
-            }
-            t.cy - (ink.top + ink.bottom) / 2f
+        var x = t.cx
+        val baseline: Float
+        if (t.inkCentered) {
+            // Fit and centre the ink actually drawn, measured from pixels (see InkMeter).
+            val ink = InkMeter.measure(t.text, paint)
+            val k = minOf(1f, t.maxWidth / ink.width(), t.maxHeight / ink.height())
+            paint.textSize = t.size * k
+            x = t.cx - (ink.left + ink.right) * k / 2f
+            baseline = t.cy - (ink.top + ink.bottom) * k / 2f
         } else {
+            val width = paint.measureText(t.text)
+            if (width > t.maxWidth) paint.textSize = t.size * t.maxWidth / width
             val fm = paint.fontMetrics
-            t.cy - (fm.ascent + fm.descent) / 2f
+            baseline = t.cy - (fm.ascent + fm.descent) / 2f
         }
 
         if (t.glowRadius > 0f && t.glowColor != 0) {
@@ -95,10 +96,10 @@ class AndroidRenderer(context: Context) {
             glow.color = t.glowColor
             glow.alpha = (Colors.alpha(t.glowColor) * alpha * t.alpha).toInt().coerceIn(0, 255)
             glow.maskFilter = BlurMaskFilter(t.glowRadius, BlurMaskFilter.Blur.NORMAL)
-            canvas.drawText(t.text, t.cx, baseline, glow)
+            canvas.drawText(t.text, x, baseline, glow)
         }
         applyFill(t.fill, t.alpha * alpha)
-        canvas.drawText(t.text, t.cx, baseline, paint)
+        canvas.drawText(t.text, x, baseline, paint)
     }
 
     private fun reset(fill: Fill, alpha: Float) {
