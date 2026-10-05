@@ -21,7 +21,15 @@ data class Palette(
     val glow: Int,
 ) {
     companion object {
+        /** Made for Hanife Betül: rose gold on a deep teal night, dusty rose and sage. */
+        val BETUL = Palette(
+            "betul", "Hanife Betül",
+            hex("#123A44"), hex("#041217"), hex("#E8B4A0"),
+            hex("#C97B84"), hex("#4F7F72"), hex("#F4C7C3"), hex("#FFE4D6"),
+        )
+
         val ALL = listOf(
+            BETUL,
             Palette(
                 "emerald", "Emerald & Gold",
                 hex("#0D4633"), hex("#02140E"), hex("#D9B54A"),

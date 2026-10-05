@@ -54,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -96,23 +97,28 @@ fun DetailScreen(
     var controls by remember { mutableStateOf(true) }
     var sheet by remember { mutableStateOf(false) }
     val thumb by rememberThumbnail(sel)
+    val viewport = rememberViewport()
+    var shuffles by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(sel) {
+    LaunchedEffect(sel, viewport) {
         rendering = true
-        full = Wallpapers.renderFullSize(context, sel)
+        full = Wallpapers.renderViewport(context, sel, viewport.width, viewport.height)
         rendering = false
         onChanged(sel)
     }
 
-    fun act(done: String, action: suspend (Bitmap) -> Unit) {
-        // While a new palette/seed renders, `full` still holds the previous image.
-        if (rendering) return
-        val bmp = full ?: return
+    /**
+     * Renders the real wallpaper bitmap (on a tablet, a square that works in
+     * both orientations, so not the on-screen preview) and hands it to [action].
+     */
+    fun act(done: () -> String, action: suspend (Bitmap) -> Unit) {
+        // While a new palette/seed renders, the preview still shows the previous one.
+        if (rendering || busy) return
         scope.launch {
             busy = true
             try {
-                action(bmp)
-                snackbar.showSnackbar(done)
+                action(Wallpapers.renderWallpaper(context, sel))
+                snackbar.showSnackbar(done())
             } catch (e: Exception) {
                 snackbar.showSnackbar("Something went wrong: ${e.message ?: e.javaClass.simpleName}")
             } finally {
@@ -174,10 +180,14 @@ fun DetailScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 ) {
-                    RoundAction(Icons.Filled.Refresh, "Shuffle") { sel = sel.copy(seed = Random.nextInt(1, 100_000)) }
+                    RoundAction(Icons.Filled.Refresh, "Shuffle") {
+                        sel = sel.copy(seed = Random.nextInt(1, 100_000))
+                        // Easter egg: every seventh shuffle earns a compliment.
+                        if (++shuffles % 7 == 0) scope.launch { snackbar.showSnackbar(HanifeBetul.SHUFFLE_MESSAGE) }
+                    }
                     RoundAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Favourite", onToggleFavorite)
                     RoundAction(Icons.Filled.KeyboardArrowDown, "Save to gallery") {
-                        act("Saved to Pictures/Noor") { Wallpapers.saveToGallery(context, it, "noor-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
+                        act({ "Saved to Pictures/Noor ✨" }) { Wallpapers.saveToGallery(context, it, "noor-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
                     }
                     Button(
                         onClick = { sheet = true },
@@ -201,13 +211,13 @@ fun DetailScreen(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
                 SheetOption(Icons.Filled.Home, "Home screen") {
-                    sheet = false; act("Home screen wallpaper set") { Wallpapers.apply(context, it, Target.HOME) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.HOME) }
                 }
                 SheetOption(Icons.Filled.Lock, "Lock screen") {
-                    sheet = false; act("Lock screen wallpaper set") { Wallpapers.apply(context, it, Target.LOCK) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.LOCK) }
                 }
                 SheetOption(Icons.Filled.Star, "Home and lock screens") {
-                    sheet = false; act("Wallpaper set") { Wallpapers.apply(context, it, Target.BOTH) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.BOTH) }
                 }
                 SheetOption(Icons.Filled.PlayArrow, "Live wallpaper (twinkling stars)") {
                     sheet = false

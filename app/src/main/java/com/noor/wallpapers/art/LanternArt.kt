@@ -6,17 +6,25 @@ import kotlin.math.PI
 object LanternArt {
     class Params(val phrase: Phrase, val script: CalligraphyArt.Script = CalligraphyArt.Script.RUQAA)
 
-    /** Positions as (x fraction, hang length fraction of height, size in design px). */
+    /**
+     * Positions as (x fraction of the safe area, hang length fraction, size in design px).
+     * Extra lanterns beyond 0..1 only show where the canvas is wider than the
+     * safe area, such as a tablet held sideways.
+     */
     fun layout(ctx: RenderContext): List<Triple<Double, Double, Double>> {
         val rnd = ctx.random(31)
         val count = 3 + rnd.nextInt(3)
-        return (0 until count).map { i ->
+        val main = (0 until count).map { i ->
             val slot = (i + 0.5) / count
             val x = slot + (rnd.nextDouble() - 0.5) * 0.08
             val len = 0.10 + rnd.nextDouble() * 0.22
             val size = 150 + rnd.nextDouble() * 90
             Triple(x, len, size)
         }
+        val extra = listOf(-0.32, -0.12, 1.12, 1.32).map { x ->
+            Triple(x + (rnd.nextDouble() - 0.5) * 0.06, 0.06 + rnd.nextDouble() * 0.2, 130 + rnd.nextDouble() * 80)
+        }
+        return main + extra
     }
 
     fun scene(ctx: RenderContext, p: Params): Scene {
@@ -27,18 +35,27 @@ object LanternArt {
         b.group(alpha = 0.18f) { GeometricArt.drawPattern(this, ctx, backdrop, GeometricArt.tiles(ctx, backdrop)) }
         Common.starfield(b, ctx, 0.0, ctx.h * 0.75, 140, salt = 41)
 
-        val moonX = ctx.w * 0.76
-        val moonY = ctx.h * 0.42
+        // A tablet's square safe area is much shorter than a phone screen, so tighten the layout.
+        val square = ctx.safeH < ctx.safeW * 1.5
+        val moonX = ctx.x(0.76)
+        val moonY = ctx.y(if (square) 0.30 else 0.42)
         Common.glow(b, moonX, moonY, 300 * ctx.u, pal.glow, 0.3f)
         b.fill(Common.crescent(moonX, moonY, 120 * ctx.u, rotation = -0.9), pal.line)
         b.fill(Common.star(moonX + 10 * ctx.u, moonY + 20 * ctx.u, 34 * ctx.u, 14 * ctx.u, 5), pal.glow)
 
         for ((fx, len, size) in layout(ctx)) {
-            lantern(b, ctx, fx * ctx.w, ctx.h * len, size * ctx.u)
+            val x = ctx.x(fx)
+            if (x < -size * ctx.u || x > ctx.w + size * ctx.u) continue
+            lantern(b, ctx, x, ctx.y(if (square) len * 0.7 else len), size * ctx.u)
         }
 
-        val (body, windows) = NightArt.mosque(ctx, NightArt.Architecture.OTTOMAN, ctx.w / 2, ctx.h, ctx.random(57))
+        // Easter egg: "HB" among the stars, top left of the safe area.
+        Common.initialsConstellation(b, ctx, ctx.x(0.08), ctx.y(0.36), 60 * ctx.u, alpha = 0.85f)
+
+        val ground = ctx.safeTop + ctx.safeH
+        val (body, windows) = NightArt.mosque(ctx, NightArt.Architecture.OTTOMAN, ctx.cx, ground, ctx.random(57))
         b.fill(body, Colors.darken(pal.bgBottom, 0.6f), 0.9f)
+        b.fill(Path().rect(0, ground, ctx.w, ctx.h), Colors.darken(pal.bgBottom, 0.6f), 0.9f)
         b.fill(windows, pal.glow, 0.6f)
 
         val font = when (p.script) {
@@ -47,21 +64,21 @@ object LanternArt {
             CalligraphyArt.Script.KUFI -> FontId.KUFI
         }
         val text = if (p.script == CalligraphyArt.Script.NASKH) p.phrase.arabic else p.phrase.bare
-        val ty = ctx.h * 0.56
+        val ty = ctx.y(if (square) 0.52 else 0.56)
         b.text(
             TextItem(
-                text, font, (210 * ctx.u).toFloat(), (ctx.w / 2).toFloat(), ty.toFloat(),
+                text, font, (210 * ctx.u).toFloat(), ctx.cx.toFloat(), ty.toFloat(),
                 LinearFill(
                     0f, (ty - 100 * ctx.u).toFloat(), 0f, (ty + 100 * ctx.u).toFloat(),
                     intArrayOf(Colors.lighten(pal.line, 0.4f), pal.line),
                 ),
-                maxWidth = (ctx.w * 0.82).toFloat(),
+                maxWidth = (ctx.safeW * 0.82).toFloat(),
                 glowColor = Colors.withAlpha(pal.glow, 0.6f), glowRadius = (20 * ctx.u).toFloat(),
             ),
         )
         b.text(
             TextItem(
-                p.phrase.meaning.uppercase(), FontId.LATIN, (38 * ctx.u).toFloat(), (ctx.w / 2).toFloat(),
+                p.phrase.meaning.uppercase(), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
                 (ty + 150 * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
                 alpha = 0.9f, letterSpacing = 0.25f,
             ),

@@ -34,7 +34,7 @@ object GeometricArt {
         Common.background(b, ctx)
         drawPattern(b, ctx, p, tiles(ctx, p))
         if (p.style != PatternStyle.LINEWORK) {
-            Common.glow(b, ctx.w / 2, ctx.h * 0.46, ctx.w * 0.7, ctx.palette.glow, 0.12f)
+            Common.glow(b, ctx.cx, ctx.y(0.46), ctx.safeW * 0.7, ctx.palette.glow, 0.12f)
         }
         Common.vignette(b, ctx, if (p.style == PatternStyle.LINEWORK) 0.7f else 0.5f)
         Common.topShade(b, ctx)

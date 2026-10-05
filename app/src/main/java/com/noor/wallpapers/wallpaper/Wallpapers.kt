@@ -66,23 +66,56 @@ object Wallpapers {
         return width to height
     }
 
+    /** Tablets (smallest width 600dp+) rotate, so their wallpapers must work both ways up. */
+    fun isTablet(context: Context) = context.resources.configuration.smallestScreenWidthDp >= 600
+
+    /** Size of the current window (rotates with the device). Needs an Activity context for accuracy. */
+    fun windowSize(context: Context): Pair<Int, Int> {
+        val wm = context.getSystemService(WindowManager::class.java)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val b = wm.currentWindowMetrics.bounds
+            b.width() to b.height()
+        } else {
+            val m = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getRealMetrics(m)
+            m.widthPixels to m.heightPixels
+        }
+    }
+
+    /**
+     * Context for drawing what a [width] x [height] view shows. On a tablet the
+     * focal content goes in the centred square, exactly as in the real wallpaper.
+     */
+    fun viewportContext(context: Context, sel: Selection, width: Int, height: Int): RenderContext =
+        if (isTablet(context)) RenderContext.tablet(width, height, minOf(width, height).toDouble(), sel.palette, sel.seed)
+        else RenderContext(width, height, sel.palette, sel.seed)
+
+    /**
+     * Context for the bitmap handed to WallpaperManager. Phones get the exact
+     * panel size. Tablets get a square as wide as the panel's long side: the
+     * system centre-crops it to the screen in either orientation, and the
+     * focal square (the panel's short side) is visible both ways.
+     */
+    fun wallpaperContext(context: Context, sel: Selection): RenderContext {
+        val (short, long) = screenSize(context)
+        return if (isTablet(context)) RenderContext.tablet(long, long, short.toDouble(), sel.palette, sel.seed)
+        else RenderContext(short, long, sel.palette, sel.seed)
+    }
+
     /** Renders on the calling thread. */
-    fun renderNow(context: Context, sel: Selection, width: Int, height: Int): Bitmap {
-        val scene = sel.entry.render(RenderContext(width, height, sel.palette, sel.seed))
-        return AndroidRenderer(context).renderBitmap(scene)
-    }
+    fun renderNow(context: Context, sel: Selection, ctx: RenderContext): Bitmap =
+        AndroidRenderer(context).renderBitmap(sel.entry.render(ctx))
 
-    suspend fun render(context: Context, sel: Selection, width: Int, height: Int): Bitmap =
-        withContext(Dispatchers.Default) { renderNow(context, sel, width, height) }
+    suspend fun renderViewport(context: Context, sel: Selection, width: Int, height: Int): Bitmap =
+        withContext(Dispatchers.Default) { renderNow(context, sel, viewportContext(context, sel, width, height)) }
 
-    suspend fun renderFullSize(context: Context, sel: Selection): Bitmap {
-        val (w, h) = screenSize(context)
-        return render(context, sel, w, h)
-    }
+    suspend fun renderWallpaper(context: Context, sel: Selection): Bitmap =
+        withContext(Dispatchers.Default) { renderNow(context, sel, wallpaperContext(context, sel)) }
 
     suspend fun apply(context: Context, bitmap: Bitmap, target: Target) = withContext(Dispatchers.IO) {
         val wm = WallpaperManager.getInstance(context)
-        // Exact-size bitmap, so ColorOS shows it 1:1 without cropping or scrolling.
+        // Phones: exact panel size, so ColorOS shows it 1:1. Tablets: a square the system centre-crops.
         wm.setBitmap(bitmap, null, true, target.flags)
     }
 
@@ -129,6 +162,11 @@ class Prefs(context: Context) {
     var liveSelection: Selection
         get() = Selection.decode(sp.getString(KEY_LIVE, null)) ?: Selection.of(Catalog.entries.first())
         set(value) = sp.edit().putString(KEY_LIVE, value.encode()).apply()
+
+    /** Whether the first-launch welcome for Hanife Betül has been shown. */
+    var welcomed: Boolean
+        get() = sp.getBoolean("welcomed", false)
+        set(value) = sp.edit().putBoolean("welcomed", value).apply()
 
     /** Last palette/seed the user picked per entry, so the gallery remembers customisations. */
     fun customised(entryId: String): Selection? = Selection.decode(sp.getString("sel_$entryId", null))

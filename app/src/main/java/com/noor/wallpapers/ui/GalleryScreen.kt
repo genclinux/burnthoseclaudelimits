@@ -37,7 +37,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.noor.wallpapers.art.Category
-import com.noor.wallpapers.art.RenderContext
 import com.noor.wallpapers.wallpaper.Selection
 
 /** null category = all; [favoritesOnly] narrows further. */
@@ -64,24 +68,39 @@ fun GalleryScreen(
     onFavoritesOnly: (Boolean) -> Unit,
     onToggleFavorite: (String) -> Unit,
     onOpen: (Selection) -> Unit,
+    onDedication: () -> Unit,
 ) {
     val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val greeting = remember { HanifeBetul.greeting() }
+    var titleTaps by remember { mutableIntStateOf(0) }
     Scaffold(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 scrollBehavior = scroll,
                 title = {
-                    Column {
-                        Text("Noor", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                    // Easter egg: tap the title five times.
+                    Column(
+                        Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            titleTaps++
+                            if (titleTaps >= 5) {
+                                titleTaps = 0
+                                onDedication()
+                            }
+                        },
+                    ) {
+                        Text("Noor · نور", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                         Text(
-                            "نور · Islamic wallpapers",
+                            greeting,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
                 actions = {
+                    IconButton(onClick = onDedication) {
+                        Text("✦", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
+                    }
                     IconButton(onClick = { onFavoritesOnly(!favoritesOnly) }) {
                         Icon(
                             if (favoritesOnly) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -97,8 +116,11 @@ fun GalleryScreen(
             )
         },
     ) { padding ->
+        val thumb = rememberThumbnailSize()
+        val aspect = thumb.width / thumb.height.toFloat()
+        val landscape = aspect > 1f
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 150.dp),
+            columns = GridCells.Adaptive(minSize = if (landscape) 220.dp else 150.dp),
             contentPadding = PaddingValues(
                 start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(),
                 bottom = padding.calculateBottomPadding() + 24.dp,
@@ -113,7 +135,7 @@ fun GalleryScreen(
             if (items.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
-                        "No favourites yet. Tap the heart on any wallpaper to keep it here.",
+                        HanifeBetul.EMPTY_FAVOURITES,
                         modifier = Modifier.padding(vertical = 48.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -123,6 +145,7 @@ fun GalleryScreen(
                 WallpaperCard(
                     sel = sel,
                     title = title,
+                    aspect = aspect,
                     favorite = sel.entryId in favorites,
                     onToggleFavorite = { onToggleFavorite(sel.entryId) },
                     onClick = { onOpen(sel) },
@@ -166,6 +189,7 @@ private fun Chip(label: String, arabic: String?, selected: Boolean, onClick: () 
 private fun WallpaperCard(
     sel: Selection,
     title: String,
+    aspect: Float,
     favorite: Boolean,
     onToggleFavorite: () -> Unit,
     onClick: () -> Unit,
@@ -175,7 +199,7 @@ private fun WallpaperCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(RenderContext.REFERENCE_WIDTH / RenderContext.REFERENCE_HEIGHT.toFloat())
+            .aspectRatio(aspect)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .clickable(onClick = onClick),

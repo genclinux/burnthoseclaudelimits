@@ -18,10 +18,10 @@ object MihrabArt {
         GeometricArt.drawPattern(b, ctx, wall, GeometricArt.tiles(ctx, wall), alpha = 0.85f)
         b.fill(Common.fullRect(ctx), Colors.BLACK, 0.25f)
 
-        val cx = ctx.w / 2
-        val bottom = ctx.h * 0.95
-        val outerW = ctx.w * 0.80
-        val outerH = ctx.h * 0.70
+        val cx = ctx.cx
+        val bottom = ctx.y(0.95)
+        val outerW = ctx.safeW * 0.80
+        val outerH = ctx.safeH * 0.70
         val band = 34 * u
 
         // Alfiz: the rectangular frame around the arch.

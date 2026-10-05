@@ -83,7 +83,8 @@ class NoorLiveWallpaperService : WallpaperService() {
         private fun rebuild() {
             if (width <= 0 || height <= 0) return
             val sel = prefs.liveSelection
-            val c = RenderContext(width, height, sel.palette, sel.seed)
+            // The surface follows rotation, so on a tablet this re-lays out for each orientation.
+            val c = Wallpapers.viewportContext(this@NoorLiveWallpaperService, sel, width, height)
             val bmp = renderer.renderBitmap(sel.entry.render(c))
             still?.recycle()
             still = bmp

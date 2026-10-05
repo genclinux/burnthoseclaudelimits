@@ -1,6 +1,7 @@
 package com.noor.wallpapers.art
 
 enum class Category(val title: String, val arabic: String) {
+    HANIFE_BETUL("Hanife Betül ♡", "حنيفة بتول"),
     GEOMETRIC("Geometric", "هندسة"),
     CALLIGRAPHY("Calligraphy", "خط"),
     NIGHT("Night Mosques", "ليل"),
@@ -20,7 +21,11 @@ class Entry(
     val defaultSeed: Int = 1,
     private val builder: (RenderContext) -> Scene,
 ) {
-    fun render(ctx: RenderContext): Scene = builder(ctx)
+    fun render(ctx: RenderContext): Scene {
+        val scene = builder(ctx)
+        val sig = SceneBuilder(ctx.width, ctx.height).apply { Common.signature(this, ctx) }
+        return Scene(scene.width, scene.height, scene.items + sig.items)
+    }
 }
 
 object Catalog {
@@ -34,6 +39,31 @@ object Catalog {
     }
 
     val entries: List<Entry> = buildList {
+        // Hanife Betül's own collection, first in the gallery.
+        val hb = Category.HANIFE_BETUL
+        val betul = Palette.BETUL
+        add(Entry("hb-name", "Hanife Betül", hb, betul) { ctx ->
+            CalligraphyArt.scene(ctx, CalligraphyArt.Params(Phrases.HANIFE_BETUL, CalligraphyArt.Script.NASKH, Tiling.DODECAGON_HEXAGON_SQUARE))
+        })
+        add(Entry("hb-hanif", "Hanîf · Rûm 30:30", hb, pal("emerald")) { ctx ->
+            CalligraphyArt.scene(ctx, CalligraphyArt.Params(Phrases.HANIF, CalligraphyArt.Script.NASKH, Tiling.OCTAGON_SQUARE, medallion = false))
+        })
+        add(Entry("hb-tabattal", "Tebettül · Müzzemmil 73:8", hb, betul) { ctx ->
+            CalligraphyArt.scene(ctx, CalligraphyArt.Params(Phrases.TABATTAL, CalligraphyArt.Script.NASKH, Tiling.DODECAGON_TRIANGLE, medallion = false))
+        })
+        add(Entry("hb-stars", "Betül'ün Gecesi", hb, betul, 7) { ctx ->
+            NightArt.scene(ctx, NightArt.Params(NightArt.Architecture.OTTOMAN, NightArt.Sky.DUSK, water = true))
+        })
+        add(Entry("hb-nur", "Nur", hb, betul, 4) { ctx ->
+            LanternArt.scene(ctx, LanternArt.Params(Phrases.NUR, CalligraphyArt.Script.NASKH))
+        })
+        add(Entry("hb-mihrab", "Hanife Betül Mihrabı", hb, betul) { ctx ->
+            MihrabArt.scene(ctx, MihrabArt.Params(Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.OCTAGON_SQUARE, Phrases.HANIFE_BETUL))
+        })
+        add(Entry("hb-rosette", "Betül Gülü", hb, betul) { ctx ->
+            GeometricArt.scene(ctx, GeometricArt.Params(Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, 72.0, 95.0))
+        })
+
         // Geometric
         add(geo("geo-khatam", "Khatam", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, 230.0))
         add(geo("geo-rub-el-hizb", "Rub el Hizb", "lapis", Tiling.OCTAGON_SQUARE, PatternStyle.STRAPWORK, 120.0))

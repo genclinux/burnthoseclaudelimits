@@ -18,7 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.noor.wallpapers.art.Catalog
 import com.noor.wallpapers.art.Category
+import com.noor.wallpapers.ui.DedicationSheet
 import com.noor.wallpapers.ui.DetailScreen
+import com.noor.wallpapers.ui.WelcomeDialog
 import com.noor.wallpapers.ui.GalleryScreen
 import com.noor.wallpapers.ui.NoorTheme
 import com.noor.wallpapers.wallpaper.Prefs
@@ -41,6 +43,27 @@ private fun NoorApp() {
     var openEncoded by rememberSaveable { mutableStateOf<String?>(null) }
     // Bumped when a detail screen saves a customised palette/seed, so the grid re-reads it.
     var customVersion by remember { mutableStateOf(0) }
+    var welcome by remember { mutableStateOf(!prefs.welcomed) }
+    var dedication by rememberSaveable { mutableStateOf(false) }
+
+    fun openCollection() {
+        category = Category.HANIFE_BETUL
+        favoritesOnly = false
+        openEncoded = null
+    }
+
+    if (welcome) {
+        WelcomeDialog(
+            onOpenCollection = { prefs.welcomed = true; welcome = false; openCollection() },
+            onDismiss = { prefs.welcomed = true; welcome = false },
+        )
+    }
+    if (dedication) {
+        DedicationSheet(
+            onOpenCollection = { dedication = false; openCollection() },
+            onDismiss = { dedication = false },
+        )
+    }
 
     fun toggleFavorite(id: String) {
         favorites = if (id in favorites) favorites - id else favorites + id
@@ -67,6 +90,7 @@ private fun NoorApp() {
                 onFavoritesOnly = { favoritesOnly = it },
                 onToggleFavorite = ::toggleFavorite,
                 onOpen = { openEncoded = it.encode() },
+                onDedication = { dedication = true },
             )
         } else {
             DetailScreen(

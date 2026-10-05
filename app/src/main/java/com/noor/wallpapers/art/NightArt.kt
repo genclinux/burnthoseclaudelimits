@@ -16,7 +16,7 @@ object NightArt {
     fun scene(ctx: RenderContext, p: Params): Scene {
         val b = SceneBuilder(ctx.width, ctx.height)
         val pal = ctx.palette
-        val ground = ctx.h * if (p.water) 0.70 else 0.82
+        val ground = ctx.y(if (p.water) 0.70 else 0.82)
         val rnd = ctx.random(3)
 
         // Sky
@@ -31,13 +31,13 @@ object NightArt {
             Path().rect(0, 0, ctx.w, ground),
             LinearFill(0f, 0f, 0f, ground.toFloat(), intArrayOf(top, mid, horizon), floatArrayOf(0f, 0.55f, 1f)),
         )
-        Common.glow(b, ctx.w / 2, ground, ctx.w * 0.9, horizon, if (p.sky == Sky.NIGHT) 0.35f else 0.6f)
+        Common.glow(b, ctx.cx, ground, maxOf(ctx.w, ctx.safeW) * 0.9, horizon, if (p.sky == Sky.NIGHT) 0.35f else 0.6f)
         val starCount = when (p.sky) { Sky.NIGHT -> 260; Sky.DUSK -> 120; Sky.DAWN -> 60 }
         Common.starfield(b, ctx, 0.0, ground * 0.8, starCount)
 
         // Moon
-        val moonX = ctx.w * (0.22 + rnd.nextDouble() * 0.56)
-        val moonY = ctx.h * (0.16 + rnd.nextDouble() * 0.08)
+        val moonX = ctx.x(0.22 + rnd.nextDouble() * 0.56)
+        val moonY = ctx.y(0.16 + rnd.nextDouble() * 0.08)
         val moonR = 95 * ctx.u
         Common.glow(b, moonX, moonY, moonR * 4, pal.glow, 0.32f)
         b.fill(Common.crescent(moonX, moonY, moonR, rotation = -0.5 - rnd.nextDouble() * 0.6), Colors.lighten(pal.glow, 0.3f))
@@ -48,7 +48,12 @@ object NightArt {
 
         // Mosque
         val silhouette = Colors.darken(pal.bgBottom, 0.55f)
-        val (body, windows) = mosque(ctx, p.architecture, ctx.w / 2, ground, Random(ctx.seed + 9))
+        // Easter egg: Hanife Betül's initials as a constellation, opposite the moon.
+        val hbSize = 70 * ctx.u
+        val hbX = if (moonX < ctx.cx) ctx.x(0.70) else ctx.x(0.12)
+        Common.initialsConstellation(b, ctx, hbX, ctx.y(0.30), hbSize)
+
+        val (body, windows) = mosque(ctx, p.architecture, ctx.cx, ground, Random(ctx.seed + 9))
         b.fill(body, silhouette)
         b.fill(windows, pal.glow, 0.92f)
 

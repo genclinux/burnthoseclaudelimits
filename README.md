@@ -1,12 +1,45 @@
-# Noor · نور — Islamic wallpapers for the OPPO Find X9 Pro
+# Noor · نور — Islamic wallpapers, made for Hanife Betül
 
-An Android app that draws Islamic art on the phone at its native resolution, so
+An Android app that draws Islamic art on the device at its native resolution, so
 nothing is downloaded and nothing is upscaled. It is tuned for the
 **OPPO Find X9 Pro** (6.78" LTPO OLED, **1272 × 2772**, ColorOS 16 / Android 16)
-and works on any Android 10+ phone, because it renders at whatever size the
-display reports.
+and works on any Android 10+ phone or **tablet**.
 
 ![Gallery](docs/noor-gallery.jpg)
+
+## For Hanife Betül
+
+The app was made for Hanife Betül, and it's full of not-so-secret easter eggs
+for her (in Turkish):
+
+- **Her own collection**, first in the gallery: her name in a calligraphy
+  medallion, and the two verses her names come from. *Hanîf* is in Rûm 30:30.
+  *Betül* shares its root with *tebettül* in Müzzemmil 73:8. The collection
+  also has a dusk mosque, a "Nur" lantern scene, a mihrab with her name
+  inscribed, and a rosette.
+- **A "Hanife Betül" palette** (rose gold, deep teal, dusty rose and sage) that
+  works on every design.
+- **An "HB" constellation** hidden in every night sky and lantern scene, and a
+  tiny **H·B star** at the foot of every wallpaper.
+- **A shooting star** in the live wallpaper every 37 seconds. Make a wish.
+- **Greetings** in the header: time-of-day greetings, Friday greetings (Hayırlı
+  Cumalar), and Ramadan and Eid greetings worked out from the Hijri calendar.
+- **A welcome note** on first launch. A **✦ button** (or five taps on the
+  "Noor" title) opens a dedication page explaining what her names mean.
+- **Personal messages** when she sets a wallpaper, a compliment on every
+  seventh shuffle, and a personal note when her favourites list is empty.
+
+## Phones and tablets
+
+On a phone the wallpaper is rendered at the exact panel size. A tablet can be
+held either way up, so the app renders a square wallpaper as wide as the
+panel's long side. The main subject sits in the centred square that stays
+visible in both orientations, and the background fills the rest. The live
+wallpaper redraws itself for each orientation.
+
+| Tablet, portrait | Tablet, landscape |
+|---|---|
+| ![](docs/noor-tablet-portrait.jpg) | ![](docs/noor-tablet-landscape.jpg) |
 
 ## What's inside
 
@@ -18,7 +51,7 @@ display reports.
 | **Ramadan & Eid** | Hanging fanous lanterns, a crescent, and *Ramadan Kareem* / *Eid Mubarak* calligraphy. |
 | **Mihrab** | A tiled wall with a gilded pointed arch, a Bismillah inscription and a glowing Mamluk glass lamp. |
 
-There are 37 designs, and each can use any of the **8 palettes**: Emerald & Gold,
+There are 44 designs, and each can use any of the **9 palettes**: Hanife Betül, Emerald & Gold,
 Midnight Lapis, Iznik Turquoise, Desert Sand, Isfahan Rose, Alhambra
 Terracotta, Onyx & Pearl (true black for OLED) and Royal Amethyst. **Shuffle**
 re-seeds the design (moon position, lantern layout, mosque details and so on).
@@ -73,7 +106,8 @@ platform-neutral form. On the phone, `AndroidRenderer` draws it onto a `Canvas`.
 on any desktop JVM, no Android SDK needed:
 
 ```bash
-gradle -p tools/preview run -Pscale=0.5   # PNGs + contact sheet in tools/preview/build/previews
+gradle -p tools/preview run -Pscale=0.5   # phone + tablet PNGs and contact sheets in tools/preview/build/previews
+gradle -p tools/preview run -Pdevice=tablet_landscape -Ponly=hb
 gradle -p tools/preview test              # same engine tests, on plain JVM
 ```
 

@@ -87,6 +87,37 @@ class StarPatternTest {
     }
 
     @Test
+    fun everyEntryRendersOnTabletsBothWaysUp() {
+        for ((w, h) in listOf(2000 to 2800, 2800 to 2000, 2800 to 2800)) {
+            for (e in Catalog.entries) {
+                val ctx = RenderContext.tablet(w / 4, h / 4, minOf(w, h) / 4.0, e.defaultPalette, e.defaultSeed)
+                assertTrue("${e.id} ${w}x$h", e.render(ctx).items.isNotEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun tabletSafeAreaIsTheCentredSquare() {
+        val ctx = RenderContext.tablet(2800, 2800, 2000.0, Palette.BETUL, 1)
+        assertEquals(1400.0, ctx.cx, 1e-9)
+        assertEquals(1400.0, ctx.cy, 1e-9)
+        assertEquals(400.0, ctx.x(0.0), 1e-9)
+        assertEquals(2400.0, ctx.y(1.0), 1e-9)
+        // Phones keep the original scale: one design pixel per panel pixel on the Find X9 Pro.
+        assertEquals(1.0, RenderContext(1272, 2772, Palette.BETUL, 1).u, 1e-9)
+    }
+
+    @Test
+    fun hanifeBetulCollectionComesFirst() {
+        assertEquals(Category.HANIFE_BETUL, Catalog.entries.first().category)
+        assertEquals("betul", Palette.ALL.first().id)
+        // Every wallpaper carries the H·B monogram.
+        val e = Catalog.entries.last()
+        val items = e.render(RenderContext(300, 650, e.defaultPalette, 1)).items
+        assertTrue(items.any { it is TextItem && it.text == "H·B" })
+    }
+
+    @Test
     fun renderingIsDeterministic() {
         val e = Catalog.byId("night-istanbul")!!
         fun count() = e.render(RenderContext(300, 650, e.defaultPalette, 42)).items.sumOf { (it as? FillItem)?.path?.ops?.size ?: 0 }

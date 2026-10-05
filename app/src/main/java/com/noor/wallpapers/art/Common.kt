@@ -8,18 +8,45 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-/** Everything a design needs to draw one frame. */
+/**
+ * Everything a design needs to draw one frame.
+ *
+ * Backgrounds fill the whole canvas, but focal content (medallions, mosques,
+ * lanterns, arches) is laid out inside the *safe area*. On a phone the safe
+ * area is the whole screen. On a tablet it is the centred square that stays
+ * visible whether the tablet is held upright or sideways, so one wallpaper
+ * works in both orientations.
+ */
 class RenderContext(
     val width: Int,
     val height: Int,
     val palette: Palette,
     val seed: Int,
+    safeLeft: Double = 0.0,
+    safeTop: Double = 0.0,
+    safeWidth: Double = width.toDouble(),
+    safeHeight: Double = height.toDouble(),
 ) {
     val w = width.toDouble()
     val h = height.toDouble()
 
-    /** One "design pixel": layouts are authored for the Find X9 Pro's 1272 px wide panel. */
-    val u = w / REFERENCE_WIDTH
+    val safeLeft = safeLeft
+    val safeTop = safeTop
+    val safeW = safeWidth
+    val safeH = safeHeight
+    val cx = safeLeft + safeWidth / 2
+    val cy = safeTop + safeHeight / 2
+
+    /** A point [f] of the way across / down the safe area. */
+    fun x(f: Double) = safeLeft + f * safeW
+    fun y(f: Double) = safeTop + f * safeH
+
+    /**
+     * One "design pixel". Layouts are authored for the Find X9 Pro's 1272 px
+     * wide panel; in a squarer safe area the height limit takes over, so tall
+     * things like minarets still fit.
+     */
+    val u = minOf(safeW / REFERENCE_WIDTH, safeH / 2000.0)
 
     fun random(salt: Int = 0) = Random(seed * 7919 + salt)
 
@@ -27,6 +54,15 @@ class RenderContext(
         /** OPPO Find X9 Pro: 6.78" LTPO OLED, 1272 x 2772. */
         const val REFERENCE_WIDTH = 1272
         const val REFERENCE_HEIGHT = 2772
+
+        /**
+         * A tablet canvas of [width] x [height] whose focal content sits in a
+         * centred square of side [safeSize] (the panel's short side).
+         */
+        fun tablet(width: Int, height: Int, safeSize: Double, palette: Palette, seed: Int) = RenderContext(
+            width, height, palette, seed,
+            (width - safeSize) / 2, (height - safeSize) / 2, safeSize, safeSize,
+        )
     }
 }
 
@@ -143,6 +179,48 @@ object Common {
             p.polygon((0 until 4).map { Vec(cx, cy) + Vec.polar(r, rot + PI / 4 + it * PI / 2) })
         }
         return p
+    }
+
+    /**
+     * Easter egg: a small constellation spelling "HB" for Hanife Betül, hidden
+     * among the stars of every night sky. [size] is the letter height.
+     */
+    fun initialsConstellation(b: SceneBuilder, ctx: RenderContext, left: Double, top: Double, size: Double, alpha: Float = 1f) {
+        fun p(x: Double, y: Double) = Vec(left + x * size, top + y * size)
+        val strokes = listOf(
+            // H
+            listOf(p(0.0, 0.0), p(0.0, 1.0)),
+            listOf(p(0.0, 0.5), p(0.5, 0.5)),
+            listOf(p(0.5, 0.0), p(0.5, 1.0)),
+            // B
+            listOf(p(0.85, 0.0), p(0.85, 1.0)),
+            listOf(p(0.85, 0.0), p(1.2, 0.08), p(1.25, 0.3), p(0.85, 0.5)),
+            listOf(p(0.85, 0.5), p(1.3, 0.6), p(1.3, 0.88), p(0.85, 1.0)),
+        )
+        val lines = Path()
+        for (s in strokes) lines.polygon(s, closed = false)
+        b.stroke(lines, ctx.palette.glow, (1.6 * ctx.u).toFloat(), 0.28f * alpha)
+        val dots = strokes.flatten().distinct()
+        for (d in dots) {
+            glow(b, d.x, d.y, 16 * ctx.u, ctx.palette.glow, 0.3f * alpha)
+            b.fill(Path().circle(d.x, d.y, 3.4 * ctx.u), Colors.lighten(ctx.palette.glow, 0.6f), 0.95f * alpha)
+        }
+    }
+
+    /** Easter egg: a quiet "H·B" monogram in a tiny eight-pointed star, on every wallpaper. */
+    fun signature(b: SceneBuilder, ctx: RenderContext) {
+        val x = ctx.cx
+        val y = ctx.y(0.968)
+        val r = 15 * ctx.u
+        val col = ctx.palette.line
+        b.fill(rubElHizb(x, y, r), col, 0.38f)
+        b.fill(Path().circle(x, y, r * 0.55), Colors.darken(ctx.palette.bgBottom, 0.2f), 0.55f)
+        b.text(
+            TextItem(
+                "H·B", FontId.LATIN, (9 * ctx.u).toFloat(), x.toFloat(), y.toFloat(),
+                SolidFill(col), alpha = 0.6f,
+            ),
+        )
     }
 
     fun ring(cx: Double, cy: Double, outer: Double, inner: Double): Path =

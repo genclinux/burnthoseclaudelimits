@@ -39,6 +39,22 @@ object Phrases {
         "maakum", "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", "وهو معكم أين ما كنتم",
         "Wa huwa ma‘akum ayna mā kuntum", "And He is with you wherever you are · 57:4",
     )
+    // Hanife Betül's collection. Both of her names have roots in the Qur'an:
+    // hanīf (upright, turning sincerely to God) and batūl (wholly devoted to God),
+    // which shares its root with tabattal in al-Muzzammil 73:8.
+    val HANIFE_BETUL = Phrase(
+        "hanife-betul", "حَنِيفَة بَتُول", "حنيفة بتول",
+        "Hanife Betül", "Hanîf: Hakk'a yönelen · Betül: kendini Allah'a adayan",
+    )
+    val HANIF = Phrase(
+        "hanif", "فَأَقِمْ وَجْهَكَ لِلدِّينِ حَنِيفًا", "فأقم وجهك للدين حنيفا",
+        "Fa-aqim wajhaka lid-dīni ḥanīfā", "Yüzünü hanîf olarak dine çevir · Rûm 30:30",
+    )
+    val TABATTAL = Phrase(
+        "tabattal", "وَتَبَتَّلْ إِلَيْهِ تَبْتِيلًا", "وتبتل إليه تبتيلا",
+        "Wa tabattal ilayhi tabtīlā", "Bütün benliğinle O'na yönel · Müzzemmil 73:8",
+    )
+    val NUR = Phrase("nur", "نُور", "نور", "Nūr", "NUR İÇİNDE KAL, HANİFE BETÜL")
     val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramaḍān Karīm", "Ramadan Kareem")
     val EID = Phrase("eid", "عِيدٌ مُبَارَكٌ", "عيد مبارك", "‘Īd Mubārak", "Eid Mubarak")
 }
@@ -63,16 +79,19 @@ object CalligraphyArt {
         GeometricArt.drawPattern(b, ctx, backdrop, GeometricArt.tiles(ctx, backdrop), alpha = 0.35f)
         Common.vignette(b, ctx, 0.65f)
 
-        val cx = ctx.w / 2
-        val cy = ctx.h * 0.5
-        if (p.medallion) medallion(b, ctx, cx, cy, ctx.w * 0.40) else frame(b, ctx, cx, cy)
+        val cx = ctx.cx
+        val cy = ctx.cy
+        val r = minOf(ctx.safeW * 0.40, ctx.safeH * 0.27)
+        val hw = ctx.safeW * 0.44
+        val hh = minOf(ctx.safeW * 0.30, ctx.safeH * 0.27)
+        if (p.medallion) medallion(b, ctx, cx, cy, r) else frame(b, ctx, cx, cy, hw, hh)
 
         val (font, text) = when (p.script) {
             Script.NASKH -> FontId.NASKH_BOLD to p.phrase.arabic
             Script.RUQAA -> FontId.RUQAA to p.phrase.bare
             Script.KUFI -> FontId.KUFI to p.phrase.bare
         }
-        val maxWidth = if (p.medallion) ctx.w * 0.62 else ctx.w * 0.80
+        val maxWidth = if (p.medallion) r * 1.55 else hw * 1.8
         val size = if (p.medallion) 250 * ctx.u else 170 * ctx.u
         b.text(
             TextItem(
@@ -87,17 +106,17 @@ object CalligraphyArt {
         )
 
         if (p.showMeaning) {
-            val y = cy + ctx.w * 0.40 + 150 * ctx.u
+            val y = cy + (if (p.medallion) r else hh + 130 * ctx.u) + 150 * ctx.u
             b.text(
                 TextItem(
                     p.phrase.transliteration, FontId.LATIN, (40 * ctx.u).toFloat(), cx.toFloat(), y.toFloat(),
-                    SolidFill(pal.line), maxWidth = (ctx.w * 0.84).toFloat(), alpha = 0.95f, letterSpacing = 0.04f,
+                    SolidFill(pal.line), maxWidth = (ctx.safeW * 0.84).toFloat(), alpha = 0.95f, letterSpacing = 0.04f,
                 ),
             )
             b.text(
                 TextItem(
                     p.phrase.meaning, FontId.LATIN, (32 * ctx.u).toFloat(), cx.toFloat(), (y + 62 * ctx.u).toFloat(),
-                    SolidFill(Colors.lighten(pal.line, 0.5f)), maxWidth = (ctx.w * 0.84).toFloat(), alpha = 0.75f,
+                    SolidFill(Colors.lighten(pal.line, 0.5f)), maxWidth = (ctx.safeW * 0.84).toFloat(), alpha = 0.75f,
                 ),
             )
         }
@@ -130,11 +149,9 @@ object CalligraphyArt {
     }
 
     /** A tall rounded frame with corner stars, for long verses. */
-    fun frame(b: SceneBuilder, ctx: RenderContext, cx: Double, cy: Double) {
+    fun frame(b: SceneBuilder, ctx: RenderContext, cx: Double, cy: Double, hw: Double, hh: Double) {
         val pal = ctx.palette
-        val hw = ctx.w * 0.44
-        val hh = ctx.w * 0.30
-        Common.glow(b, cx, cy, ctx.w * 0.7, pal.glow, 0.15f)
+        Common.glow(b, cx, cy, hw * 1.6, pal.glow, 0.15f)
         fun box(inset: Double) = Path().rect(cx - hw + inset, cy - hh + inset, cx + hw - inset, cy + hh - inset)
         b.fill(box(0.0), Colors.darken(pal.bgBottom, 0.25f), 0.75f)
         b.stroke(box(0.0), pal.line, (6 * ctx.u).toFloat())

@@ -9,30 +9,52 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
 
+/** Phone = OPPO Find X9 Pro; tablet = a typical 7:5 tablet (2800 x 2000) both ways up. */
+enum class Device(val width: Int, val height: Int, val tablet: Boolean) {
+    PHONE(RenderContext.REFERENCE_WIDTH, RenderContext.REFERENCE_HEIGHT, false),
+    TABLET_PORTRAIT(2000, 2800, true),
+    TABLET_LANDSCAPE(2800, 2000, true),
+}
+
 /**
- * Renders every catalog entry to PNG plus a contact sheet.
- * Args: <outDir> <scale> [idFilter]. Scale 1.0 = OPPO Find X9 Pro native 1272x2772.
+ * Renders every catalog entry to PNG plus a contact sheet per device.
+ * Args: <outDir> <scale> [idFilter] [device|all]. Scale 1.0 = native resolution.
  */
 fun main(args: Array<String>) {
-    val out = File(args.getOrElse(0) { "build/previews" }).apply { mkdirs() }
+    val root = File(args.getOrElse(0) { "build/previews" })
     val scale = args.getOrElse(1) { "0.5" }.toDouble()
     val filter = args.getOrElse(2) { "" }
+    val devices = args.getOrElse(3) { "all" }.let { d ->
+        if (d == "all" || d.isBlank()) Device.entries else listOf(Device.valueOf(d.uppercase()))
+    }
     val renderer = Java2DRenderer(File("../../app/src/main/assets/fonts"))
-    val w = (RenderContext.REFERENCE_WIDTH * scale).roundToInt()
-    val h = (RenderContext.REFERENCE_HEIGHT * scale).roundToInt()
+    for (device in devices) {
+        val out = if (device == Device.PHONE) root else File(root, device.name.lowercase())
+        render(renderer, device, out.apply { mkdirs() }, scale, filter)
+    }
+}
+
+private fun render(renderer: Java2DRenderer, device: Device, out: File, scale: Double, filter: String) {
+    val w = (device.width * scale).roundToInt()
+    val h = (device.height * scale).roundToInt()
 
     val entries = Catalog.entries.filter { filter.isBlank() || it.id.contains(filter) }
     val images = entries.map { e ->
         val t0 = System.nanoTime()
-        val scene = e.render(RenderContext(w, h, e.defaultPalette, e.defaultSeed))
+        val ctx = if (device.tablet) {
+            RenderContext.tablet(w, h, minOf(w, h).toDouble(), e.defaultPalette, e.defaultSeed)
+        } else {
+            RenderContext(w, h, e.defaultPalette, e.defaultSeed)
+        }
+        val scene = e.render(ctx)
         val img = renderer.render(scene)
         ImageIO.write(img, "png", File(out, "${e.id}.png"))
-        println("%-28s %4d ms  %d items".format(e.id, (System.nanoTime() - t0) / 1_000_000, scene.items.size))
+        println("%-18s %-28s %4d ms".format(device, e.id, (System.nanoTime() - t0) / 1_000_000))
         e to img
     }
 
-    // Contact sheet: 6 per row at a quarter of the rendered size.
-    val cols = 6
+    // Contact sheet at a third of the rendered size.
+    val cols = if (w > h) 4 else 6
     val tw = w / 3
     val th = h / 3
     val label = 28

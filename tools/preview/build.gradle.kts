@@ -26,5 +26,6 @@ tasks.named<JavaExec>("run") {
         project.findProperty("out")?.toString() ?: "build/previews",
         project.findProperty("scale")?.toString() ?: "0.5",
         project.findProperty("only")?.toString() ?: "",
+        project.findProperty("device")?.toString() ?: "all",
     )
 }
