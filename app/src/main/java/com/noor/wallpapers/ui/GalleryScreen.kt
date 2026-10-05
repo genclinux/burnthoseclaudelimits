@@ -91,6 +91,10 @@ fun GalleryScreen(
     onTogglePick: (String) -> Unit = {},
     onClosePicking: () -> Unit = {},
     pickingBar: @Composable () -> Unit = {},
+    photos: Boolean = false,
+    onPhotos: (Boolean) -> Unit = {},
+    /** "Gerçek Camiler": the photo grid, given the padding and the category row to put on top. */
+    photoGrid: @Composable (PaddingValues, @Composable () -> Unit) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val scroll = TopAppBarDefaults.pinnedScrollBehavior()
@@ -98,7 +102,7 @@ fun GalleryScreen(
         HanifeBetul.greeting(LocalDateTime.now(), AppSettings(context).birthday, PrayerRepository.hijri(context))
     }
     var titleTaps by remember { mutableIntStateOf(0) }
-    if (favoritesOnly && items.isEmpty()) {
+    if (favoritesOnly && items.isEmpty() && !photos) {
         LaunchedEffect(Unit) { HanifeBetul.find(context, HanifeBetul.Surprise.EMPTY_FAVORITES) }
     }
     Scaffold(
@@ -179,60 +183,73 @@ fun GalleryScreen(
             }
         },
     ) { padding ->
-        val thumb = rememberThumbnailSize()
-        val aspect = thumb.width / thumb.height.toFloat()
-        val landscape = aspect > 1f
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = if (landscape) 220.dp else 150.dp),
-            contentPadding = PaddingValues(
-                start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(),
-                bottom = padding.calculateBottomPadding() + 24.dp,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                CategoryRow(category, onCategory)
-            }
-            if (items.isEmpty()) {
+        val categoryRow: @Composable () -> Unit = {
+            CategoryRow(
+                selected = category,
+                photos = photos,
+                onSelect = { onPhotos(false); onCategory(it) },
+                onPhotos = { onPhotos(true) },
+            )
+        }
+        if (photos) {
+            photoGrid(padding, categoryRow)
+        } else {
+            val thumb = rememberThumbnailSize()
+            val aspect = thumb.width / thumb.height.toFloat()
+            val landscape = aspect > 1f
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = if (landscape) 220.dp else 150.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(),
+                    bottom = padding.calculateBottomPadding() + 24.dp,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        HanifeBetul.EMPTY_FAVOURITES,
-                        modifier = Modifier.padding(vertical = 48.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    categoryRow()
+                }
+                if (items.isEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            HanifeBetul.EMPTY_FAVOURITES,
+                            modifier = Modifier.padding(vertical = 48.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                items(items, key = { it.first.entryId }) { (sel, title) ->
+                    WallpaperCard(
+                        sel = sel,
+                        title = title,
+                        aspect = aspect,
+                        favorite = sel.entryId in favorites,
+                        onToggleFavorite = { onToggleFavorite(sel.entryId) },
+                        onClick = { if (picks != null) onTogglePick(sel.entryId) else onOpen(sel) },
+                        pickNumber = picks?.let { it.indexOf(sel.entryId) + 1 },
                     )
                 }
-            }
-            items(items, key = { it.first.entryId }) { (sel, title) ->
-                WallpaperCard(
-                    sel = sel,
-                    title = title,
-                    aspect = aspect,
-                    favorite = sel.entryId in favorites,
-                    onToggleFavorite = { onToggleFavorite(sel.entryId) },
-                    onClick = { if (picks != null) onTogglePick(sel.entryId) else onOpen(sel) },
-                    pickNumber = picks?.let { it.indexOf(sel.entryId) + 1 },
-                )
-            }
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    "HBSnoor · Sürüm ${rememberVersionName()}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                )
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        "HBSnoor · Sürüm ${rememberVersionName()}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CategoryRow(selected: Category?, onSelect: (Category?) -> Unit) {
+private fun CategoryRow(selected: Category?, photos: Boolean, onSelect: (Category?) -> Unit, onPhotos: () -> Unit) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 4.dp)) {
-        item { Chip("Tümü", null, selected == null) { onSelect(null) } }
-        items(Category.entries) { c -> Chip(c.title, c.arabic, selected == c) { onSelect(c) } }
+        item { Chip("Tümü", null, !photos && selected == null) { onSelect(null) } }
+        item { Chip("📷 Gerçek Camiler", null, photos, onPhotos) }
+        items(Category.entries) { c -> Chip(c.title, c.arabic, !photos && selected == c) { onSelect(c) } }
     }
 }
 
@@ -290,20 +307,7 @@ private fun WallpaperCard(
                 modifier = Modifier.size(28.dp).align(Alignment.Center),
             )
         }
-        if (pickNumber != null) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(10.dp)
-                    .size(30.dp)
-                    .clip(CircleShape)
-                    .background(if (picked) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.35f))
-                    .border(2.dp, if (picked) MaterialTheme.colorScheme.primary else Color.White, CircleShape),
-            ) {
-                if (picked) Text("$pickNumber", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
-            }
-        }
+        if (pickNumber != null) PickBadge(pickNumber, Modifier.align(Alignment.TopStart))
         Box(
             Modifier
                 .fillMaxWidth()
@@ -327,6 +331,23 @@ private fun WallpaperCard(
                 )
             }
         }
+    }
+}
+
+/** Döngü: an empty ring, or the card's place in the rotation. */
+@Composable
+fun PickBadge(pickNumber: Int, modifier: Modifier = Modifier) {
+    val picked = pickNumber > 0
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .padding(10.dp)
+            .size(30.dp)
+            .clip(CircleShape)
+            .background(if (picked) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.35f))
+            .border(2.dp, if (picked) MaterialTheme.colorScheme.primary else Color.White, CircleShape),
+    ) {
+        if (picked) Text("$pickNumber", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
     }
 }
 

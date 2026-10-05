@@ -14,6 +14,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.noor.wallpapers.art.Catalog
+import com.noor.wallpapers.photos.Photo
+import com.noor.wallpapers.photos.Photos
 import com.noor.wallpapers.wallpaper.Prefs
 import com.noor.wallpapers.wallpaper.Selection
 import com.noor.wallpapers.wallpaper.NoorLiveWallpaperService
@@ -70,12 +72,19 @@ object RotationAlarms {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    /** The designs that will actually rotate: still in the catalogue, at most [RotationSchedule.MAX]. */
+    /**
+     * What will actually rotate: designs still in the catalogue and real photos
+     * still among the chosen ones, at most [RotationSchedule.MAX].
+     */
     fun designs(context: Context): List<String> {
         val s = AppSettings(context)
         val visible = Catalog.visible(s.secretUnlocked).map { it.id }.toSet()
-        return s.rotationIds.filter { it in visible }.take(RotationSchedule.MAX)
+        return s.rotationIds.filter { it in visible || Photos.byId(context, it) != null }.take(RotationSchedule.MAX)
     }
+
+    /** A design id as she customised it; null for a photo or an unknown id. */
+    fun selectionFor(context: Context, id: String): Selection? =
+        Prefs(context).customised(id) ?: Catalog.byId(id)?.let(Selection::of)
 
     fun active(context: Context) = AppSettings(context).rotationOn && designs(context).size >= 2
 
@@ -109,15 +118,16 @@ object RotationAlarms {
      * For the live wallpaper in live mode: what to show now, keyed by its
      * encoding so the key changes exactly when the picture should.
      */
-    fun liveSelection(context: Context): Pair<String, Selection>? {
+    fun liveItem(context: Context): Pair<String, String>? {
         val s = AppSettings(context)
         if (!s.rotationOn || !s.rotationLive) return null
         val ids = designs(context)
         if (ids.size < 2) return null
         val slot = RotationSchedule.slot(ZonedDateTime.now(ZoneId.systemDefault()), s.rotationInterval)
         val id = RotationSchedule.pick(ids, slot) ?: return null
-        val sel = Prefs(context).customised(id) ?: Catalog.byId(id)?.let(Selection::of) ?: return null
-        return sel.encode() to sel
+        if (Photo.isPhotoId(id)) return id to id
+        val sel = selectionFor(context, id) ?: return null
+        return sel.encode() to id
     }
 
     /** Whether HBSnoor's live wallpaper is the one on the screen now. */
@@ -138,6 +148,10 @@ object RotationAlarms {
         s.dailyWallpaper = false
         if (live) s.liveFollowsPrayer = false
         Work.ensure(context)
+        // Fetch the chosen photos now, while she is online, so later changes work offline.
+        Background.executor.execute {
+            for (id in ids) Photos.byId(context, id)?.let { p -> runCatching { Photos.wallpaperBitmap(context, p).recycle() } }
+        }
         // A static image would replace the live wallpaper, so live mode draws nothing here.
         if (!live) applyNow(context, force = true)
         Background.executor.execute { reschedule(context) }
@@ -172,10 +186,11 @@ class RotationWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val key = "${s.rotationInterval.name}:$slot"
         if (s.rotationLastSlot == key && !inputData.getBoolean(FORCE, false)) return Result.success()
         val id = RotationSchedule.pick(RotationAlarms.designs(ctx), slot) ?: return Result.success()
-        val entry = Catalog.byId(id) ?: return Result.success()
-        val sel = Prefs(ctx).customised(id) ?: Selection.of(entry)
+        val photo = Photos.byId(ctx, id)
+        val sel = RotationAlarms.selectionFor(ctx, id)
+        if (photo == null && sel == null) return Result.success()
         return try {
-            val bmp = Wallpapers.renderWallpaper(ctx, sel)
+            val bmp = if (photo != null) Photos.wallpaper(ctx, photo) else Wallpapers.renderWallpaper(ctx, sel ?: return Result.success())
             Wallpapers.apply(ctx, bmp, s.rotationTarget)
             bmp.recycle()
             s.rotationLastSlot = key

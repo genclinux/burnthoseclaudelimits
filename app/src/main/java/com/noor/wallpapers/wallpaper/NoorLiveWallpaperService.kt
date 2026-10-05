@@ -15,6 +15,8 @@ import android.view.SurfaceHolder
 import com.noor.wallpapers.art.Ambient
 import com.noor.wallpapers.art.Item
 import com.noor.wallpapers.art.RenderContext
+import com.noor.wallpapers.photos.Photo
+import com.noor.wallpapers.photos.Photos
 import com.noor.wallpapers.prayer.OverlayInfo
 import com.noor.wallpapers.prayer.Prayer
 import com.noor.wallpapers.prayer.PrayerOverlay
@@ -32,7 +34,7 @@ import java.time.MonthDay
  * likes, the prayer times in a gilded panel. It can follow the day (dawn at
  * İmsak, dusk at Akşam, stars at Yatsı), a touch sends a shooting star, and
  * on her birthday rose petals fall. In Döngü's live mode it moves through her
- * chosen designs, fading from one to the next. Animation runs only while
+ * chosen designs and real photos, fading from one to the next. Animation runs only while
  * visible, at 20 fps.
  */
 class NoorLiveWallpaperService : WallpaperService() {
@@ -64,6 +66,9 @@ class NoorLiveWallpaperService : WallpaperService() {
         private var previous: Bitmap? = null
         private var fadeStart = 0.0
         private val fadePaint = Paint(Paint.FILTER_BITMAP_FLAG)
+
+        /** A real photo is on screen: no painted stars or light over it. */
+        private var photoShown = false
 
         /** The prayer panel, rebuilt once a minute (or when settings change). */
         private var overlay: List<Item> = emptyList()
@@ -145,11 +150,23 @@ class NoorLiveWallpaperService : WallpaperService() {
 
         private fun isBirthday() = settings.birthday == MonthDay.from(LocalDate.now())
 
-        /** The design to show now: the rotation's, hers, or the one for this part of the day. */
-        private fun selection(): Selection {
-            val rotating = RotationAlarms.liveSelection(this@NoorLiveWallpaperService)
+        /**
+         * What to show now: a Döngü photo (with her design's palette for the
+         * prayer panel), or a design: the rotation's, hers, or the one for this
+         * part of the day.
+         */
+        private fun choose(): Pair<Photo?, Selection> {
+            val svc = this@NoorLiveWallpaperService
+            val rotating = RotationAlarms.liveItem(svc)
             rotationKey = rotating?.first
-            if (rotating != null) return rotating.second
+            if (rotating != null) {
+                Photos.byId(svc, rotating.second)?.let { return it to prefs.liveSelection }
+                RotationAlarms.selectionFor(svc, rotating.second)?.let { return null to it }
+            }
+            return null to selection()
+        }
+
+        private fun selection(): Selection {
             if (!settings.liveFollowsPrayer) return prefs.liveSelection
             val ev = PrayerRepository.schedule(this@NoorLiveWallpaperService)?.current(Instant.now())
             period = ev?.prayer
@@ -160,10 +177,17 @@ class NoorLiveWallpaperService : WallpaperService() {
         /** Runs on the render thread. [fade] cross-fades from the current picture (a Döngü change). */
         private fun rebuild(fade: Boolean = false) {
             if (width <= 0 || height <= 0) return
-            val sel = selection()
+            val (photo, sel) = choose()
             // The surface follows rotation, so on a tablet this re-lays out for each orientation.
             val c = Wallpapers.viewportContext(this@NoorLiveWallpaperService, sel, width, height)
-            val bmp = renderer.renderBitmap(sel.entry.render(c))
+            val shot = photo?.let { runCatching { Photos.cropped(this@NoorLiveWallpaperService, it, width, height) }.getOrNull() }
+            if (photo != null && shot == null) {
+                // Not downloaded yet and offline: keep what is showing, try again next minute.
+                rotationKey = null
+                if (still != null) return
+            }
+            photoShown = shot != null
+            val bmp = shot ?: renderer.renderBitmap(sel.entry.render(c))
             val old = still
             previous?.recycle()
             previous = null
@@ -186,7 +210,7 @@ class NoorLiveWallpaperService : WallpaperService() {
             val minuteNow = System.currentTimeMillis() / 60_000L
             if (minuteNow != rotationMinute) {
                 rotationMinute = minuteNow
-                if (RotationAlarms.liveSelection(this@NoorLiveWallpaperService)?.first != rotationKey) rebuild(fade = true)
+                if (RotationAlarms.liveItem(this@NoorLiveWallpaperService)?.first != rotationKey) rebuild(fade = true)
             }
             val now = SystemClock.uptimeMillis()
             if (rotationKey == null && settings.liveFollowsPrayer && now - periodCheckedAt > 60_000L) {
@@ -227,7 +251,7 @@ class NoorLiveWallpaperService : WallpaperService() {
                 } else {
                     canvas.drawBitmap(image, 0f, 0f, null)
                 }
-                renderer.draw(canvas, Ambient.overlay(c, t, taps, birthday))
+                if (!photoShown) renderer.draw(canvas, Ambient.overlay(c, t, taps, birthday))
                 renderer.draw(canvas, overlay)
             } catch (_: IllegalStateException) {
                 // Surface went away between frames.

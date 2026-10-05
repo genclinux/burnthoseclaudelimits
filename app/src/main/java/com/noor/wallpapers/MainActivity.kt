@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.noor.wallpapers.art.Catalog
 import com.noor.wallpapers.art.Category
 import com.noor.wallpapers.art.Palette
+import com.noor.wallpapers.photos.Photos
 import com.noor.wallpapers.prayer.Provinces
 import com.noor.wallpapers.service.AppSettings
 import com.noor.wallpapers.service.Background
@@ -56,6 +57,8 @@ import com.noor.wallpapers.ui.DetailScreen
 import com.noor.wallpapers.ui.GalleryScreen
 import com.noor.wallpapers.ui.HanifeBetul
 import com.noor.wallpapers.ui.LocationPicker
+import com.noor.wallpapers.ui.PhotoDetailScreen
+import com.noor.wallpapers.ui.PhotoGrid
 import com.noor.wallpapers.ui.NoorIcons
 import com.noor.wallpapers.ui.NoorTheme
 import com.noor.wallpapers.ui.PrayerScreen
@@ -147,6 +150,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         var favoritesOnly by rememberSaveable { mutableStateOf(false) }
         var favorites by remember { mutableStateOf(prefs.favorites) }
         var openEncoded by rememberSaveable { mutableStateOf<String?>(null) }
+        // "Gerçek Camiler": showing the photo grid, and the photo open full screen.
+        var photos by rememberSaveable { mutableStateOf(false) }
+        var openPhotoId by rememberSaveable { mutableStateOf<String?>(null) }
         // Bumped when a detail screen saves a customised palette/seed, so the grid re-reads it.
         var customVersion by remember { mutableIntStateOf(0) }
         var welcome by remember { mutableStateOf(!prefs.welcomed) }
@@ -188,7 +194,20 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         fun startPicking() {
             tab = Tab.GALLERY
             openEncoded = null
+            openPhotoId = null
             picks = settings.rotationIds.take(RotationSchedule.MAX)
+        }
+
+        fun togglePick(id: String) {
+            val current = picks.orEmpty()
+            picks = when {
+                id in current -> current - id
+                current.size >= RotationSchedule.MAX -> {
+                    say("En fazla ${RotationSchedule.MAX} duvar kağıdı seçebilirsin")
+                    current
+                }
+                else -> current + id
+            }
         }
 
         // After the welcome, so a new install sees one dialog at a time.
@@ -226,11 +245,15 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         }
 
         val open = Selection.decode(openEncoded)
+        val openPhoto = remember(openPhotoId) { openPhotoId?.let { Photos.byId(context, it) } }
         BackHandler(enabled = open != null) { openEncoded = null }
+        BackHandler(enabled = openPhoto != null) { openPhotoId = null }
         BackHandler(enabled = open == null && tab != Tab.GALLERY) { tab = Tab.GALLERY }
         BackHandler(enabled = open == null && tab == Tab.GALLERY && picks != null) { picks = null }
 
-        if (open != null) {
+        if (openPhoto != null) {
+            PhotoDetailScreen(photo = openPhoto, onBack = { openPhotoId = null })
+        } else if (open != null) {
             DetailScreen(
                 initial = open,
                 title = open.entry.title,
@@ -292,18 +315,19 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                     onOpen = { openEncoded = it.encode() },
                                     onDedication = { dedication = true },
                                     picks = picks,
-                                    onStartPicking = ::startPicking,
-                                    onTogglePick = { id ->
-                                        val current = picks.orEmpty()
-                                        picks = when {
-                                            id in current -> current - id
-                                            current.size >= RotationSchedule.MAX -> {
-                                                say("En fazla ${RotationSchedule.MAX} duvar kağıdı seçebilirsin")
-                                                current
-                                            }
-                                            else -> current + id
-                                        }
+                                    photos = photos,
+                                    onPhotos = { photos = it },
+                                    photoGrid = { padding, header ->
+                                        PhotoGrid(
+                                            padding = padding,
+                                            header = header,
+                                            picks = picks,
+                                            onTogglePick = ::togglePick,
+                                            onOpen = { openPhotoId = it.id },
+                                        )
                                     },
+                                    onStartPicking = ::startPicking,
+                                    onTogglePick = ::togglePick,
                                     onClosePicking = { picks = null },
                                     pickingBar = {
                                         RotationBar(
@@ -316,8 +340,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                                 picks = null
                                                 // Live mode needs HBSnoor's live wallpaper on screen; offer it if it isn't.
                                                 val supported = !live || RotationAlarms.liveWallpaperSet(context) || try {
-                                                    val first = Catalog.byId(chosen.first())?.let { prefs.customised(it.id) ?: Selection.of(it) }
-                                                    first?.let { context.startActivity(Wallpapers.liveWallpaperIntent(context, it)) }
+                                                    // Photos aren't designs; the live wallpaper starts on her first design (or her usual one).
+                                                    val first = chosen.firstNotNullOfOrNull { RotationAlarms.selectionFor(context, it) } ?: prefs.liveSelection
+                                                    context.startActivity(Wallpapers.liveWallpaperIntent(context, first))
                                                     true
                                                 } catch (_: Exception) {
                                                     false

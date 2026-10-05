@@ -90,6 +90,30 @@ Galeri, Vakitler, Kıble, Zikir and Takvim. Out of the box everything is set for
   replaces the daily wallpaper while it runs; stop or edit it in the gallery or
   in *Ayarlar*. A popup introduces it the first time the app opens.
 
+## Gerçek Camiler: real photographs
+
+Next to the drawn designs, the **📷 Gerçek Camiler** tab shows real photographs
+of mosques and Islamic architecture: **Pendik first** (its mosques, its shore,
+Kurtköy and Kaynarca), then a handful of İstanbul's great mosques (Büyük
+Çamlıca, Süleymaniye, Sultanahmet, Ayasofya, Ortaköy, Rüstem Paşa, Mihrimah
+Sultan), then the wider world: Mecca, Medina, Jerusalem, Edirne, Bursa,
+Divriği, Abu Dhabi, Muscat, Casablanca, Kairouan, Córdoba, the Alhambra,
+Damascus, Cairo, Isfahan, Shiraz, Samarkand, Lahore, Islamabad, Agra, Djenné
+and Brunei.
+
+- The photos come from **Wikimedia Commons** and are freely licensed (CC BY,
+  CC BY-SA, CC0 or public domain; nothing non-commercial or no-derivatives).
+  Each one shows its photographer and licence, and links to its Commons page.
+- For each place the app searches Commons and prefers Featured, Quality and
+  Valued pictures, then upright, high-resolution shots, skipping maps, plans,
+  panoramas and small files.
+- They need the internet once. The search results are kept for a month,
+  and a photo stays on the phone once downloaded. It is cropped to the exact
+  screen size, not stretched.
+- A photo can be set on the home screen, the lock screen or both, and picked for
+  **Döngü** alongside the drawn designs, including on the live wallpaper (where
+  the prayer panel shows over it, without the painted stars).
+
 ## For Hanife Betül
 
 The app was made for Hanife Betül, and it's full of not-so-secret easter eggs

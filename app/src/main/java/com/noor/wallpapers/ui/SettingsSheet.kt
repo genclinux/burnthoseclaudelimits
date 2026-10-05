@@ -325,7 +325,8 @@ fun SettingsSheet(
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             Text(
                 "Vakitler: T.C. Diyanet İşleri Başkanlığı (ezanvakti hizmeti aracılığıyla). İnternet yokken vakitler Diyanet " +
-                    "yöntemiyle hesaplanır ve Diyanet'in tablosuyla karşılaştırılarak düzeltilir.\nHBSnoor · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
+                    "yöntemiyle hesaplanır ve Diyanet'in tablosuyla karşılaştırılarak düzeltilir.\n" +
+                    "Gerçek Camiler: Wikimedia Commons; her fotoğraf kendi fotoğrafçısının özgür lisansıyla (CC BY, CC BY-SA, CC0).\nHBSnoor · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
