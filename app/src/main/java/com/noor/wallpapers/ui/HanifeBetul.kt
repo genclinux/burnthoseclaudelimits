@@ -303,7 +303,7 @@ fun DedicationSheet(onOpenCollection: () -> Unit, onDismiss: () -> Unit, onTheme
     var pickingBirthday by remember { mutableStateOf(false) }
     var theme by remember { mutableStateOf(settings.themePalette) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -477,8 +477,8 @@ private fun Card(modifier: Modifier = Modifier, content: @Composable () -> Unit)
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(20.dp))
-            .padding(16.dp),
+            .background(MaterialTheme.colorScheme.surfaceContainer, Noor.Card)
+            .padding(Noor.Inset),
     ) { content() }
 }
 

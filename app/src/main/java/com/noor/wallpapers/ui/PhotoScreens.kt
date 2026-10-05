@@ -107,22 +107,14 @@ fun PhotoGrid(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = if (aspect > 1f) 220.dp else 150.dp),
         contentPadding = PaddingValues(
-            start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(),
-            bottom = padding.calculateBottomPadding() + 24.dp,
+            start = Noor.Gutter, end = Noor.Gutter, top = padding.calculateTopPadding(),
+            bottom = padding.calculateBottomPadding() + 96.dp, // clear of the Döngü button
         ),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) { header() }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Text(
-                "Gerçek fotoğraflar: önce Pendik, sonra İstanbul'dan birkaç ve dünyanın dört bir yanından camiler. " +
-                    "Hepsi Wikimedia Commons'tan, özgür lisanslı; fotoğrafçısı her birinde yazıyor.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
         if (list.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp)) {
@@ -142,13 +134,7 @@ fun PhotoGrid(
             val inRegion = list.filter { it.place.region == region }
             if (inRegion.isEmpty()) continue
             item(span = { GridItemSpan(maxLineSpan) }, key = "region-${region.name}") {
-                Text(
-                    region.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
+                SectionTitle(region.title)
             }
             items(inRegion, key = { it.id }) { photo ->
                 PhotoCard(
@@ -168,7 +154,7 @@ private fun PhotoCard(photo: Photo, aspect: Float, pickNumber: Int?, onClick: ()
     val image by produceState<ImageBitmap?>(Photos.cachedThumbnail(photo)?.asImageBitmap(), photo.pageId) {
         value = runCatching { Photos.thumbnail(context, photo).asImageBitmap() }.getOrNull()
     }
-    val shape = RoundedCornerShape(20.dp)
+    val shape = Noor.Card
     val picked = pickNumber != null && pickNumber > 0
     Box(
         modifier = Modifier
@@ -329,33 +315,15 @@ fun PhotoDetailScreen(photo: Photo, onBack: () -> Unit) {
     }
 
     if (sheet) {
-        ModalBottomSheet(onDismissRequest = { sheet = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-            Column(Modifier.padding(bottom = 24.dp)) {
-                Text("Nereye uygulansın?", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
-                for ((target, icon, label) in listOf(
-                    Triple(Target.HOME, Icons.Filled.Home, "Ana ekran"),
-                    Triple(Target.LOCK, Icons.Filled.Lock, "Kilit ekranı"),
-                    Triple(Target.BOTH, Icons.Filled.Star, "Ana ekran ve kilit ekranı"),
-                )) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { sheet = false; apply(target) }
-                            .padding(horizontal = 24.dp, vertical = 14.dp),
-                    ) {
-                        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.size(16.dp))
-                        Text(label)
-                    }
-                }
-                Text(
-                    "Döngüye eklemek için Galeri'de ↻ düğmesine dokun ve bu fotoğrafı seç.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                )
+        NoorSheet("Nereye uygulansın?", onDismiss = { sheet = false }, subtitle = photo.place.title) {
+            for ((target, icon, label) in listOf(
+                Triple(Target.HOME, Icons.Filled.Home, "Ana ekran"),
+                Triple(Target.LOCK, Icons.Filled.Lock, "Kilit ekranı"),
+                Triple(Target.BOTH, Icons.Filled.Star, "Ana ekran ve kilit ekranı"),
+            )) {
+                OptionRow(label, icon = icon, onClick = { sheet = false; apply(target) })
             }
+            Footnote("Döngüye eklemek için Galeri'de Döngü düğmesine dokun ve bu fotoğrafı seç.")
         }
     }
 }

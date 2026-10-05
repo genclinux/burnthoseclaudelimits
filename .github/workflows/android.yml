@@ -110,6 +110,9 @@ jobs:
             adb shell am instrument -w -e class com.noor.wallpapers.DevicePreviewTest com.noor.wallpapers.test/androidx.test.runner.AndroidJUnitRunner | tee instrument.txt
             grep -q "OK (1 test)" instrument.txt
             adb pull /sdcard/Android/data/com.noor.wallpapers/files/device-previews device-previews
+            adb shell am instrument -w -e class com.noor.wallpapers.AppScreenshotTest com.noor.wallpapers.test/androidx.test.runner.AndroidJUnitRunner | tee screens.txt
+            grep -q "OK (1 test)" screens.txt
+            adb pull /sdcard/Android/data/com.noor.wallpapers/files/app-screens device-previews/app
 
       - uses: actions/upload-artifact@v4
         with:

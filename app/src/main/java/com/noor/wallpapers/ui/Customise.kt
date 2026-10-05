@@ -83,7 +83,7 @@ fun PaletteEditor(initial: Palette, onPreview: (Palette) -> Unit, onSave: (Palet
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.97f),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.97f),
         scrimColor = Color.Transparent,
     ) {
         Column(
@@ -149,7 +149,7 @@ fun DesignOptionsSheet(options: DesignOptions, editableText: Boolean, onChange: 
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.97f),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.97f),
         scrimColor = Color.Transparent,
     ) {
         Column(

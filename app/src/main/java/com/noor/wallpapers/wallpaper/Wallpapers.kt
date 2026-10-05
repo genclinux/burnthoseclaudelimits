@@ -174,10 +174,16 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("welcomed", false)
         set(value) = sp.edit().putBoolean("welcomed", value).apply()
 
-    /** Whether the "new: wallpaper rotation" popup has been shown. */
-    var rotationIntroSeen: Boolean
-        get() = sp.getBoolean("rotation_intro_seen", false)
-        set(value) = sp.edit().putBoolean("rotation_intro_seen", value).apply()
+    /**
+     * Ids of the [com.noor.wallpapers.WhatsNew] features she has been shown.
+     * 1.2.4–1.2.6 had a single rotation popup; having seen it counts as seeing "rotation".
+     */
+    var seenFeatures: Set<String>
+        get() {
+            val seen = sp.getStringSet("seen_features", emptySet())!!.toSet()
+            return if (sp.getBoolean("rotation_intro_seen", false)) seen + "rotation" else seen
+        }
+        set(value) = sp.edit().putStringSet("seen_features", value).apply()
 
     /** Last palette/seed the user picked per entry, so the gallery remembers customisations. */
     fun customised(entryId: String): Selection? = Selection.decode(sp.getString("sel_$entryId", null))

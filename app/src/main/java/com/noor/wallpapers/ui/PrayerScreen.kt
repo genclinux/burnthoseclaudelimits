@@ -224,33 +224,23 @@ private fun Content(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp)
             .padding(bottom = 24.dp),
     ) {
-        Column(Modifier.widthIn(max = 560.dp)) {
-            // Place and settings.
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(50))
-                        .clickable(onClick = onPickLocation)
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                ) {
-                    Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.size(6.dp))
-                    Text(schedule.location.label, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                    Text("  ▾", color = Color.White.copy(alpha = 0.6f))
-                }
-                if (refreshing) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
-                } else {
-                    IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = "Yenile", tint = Color.White) }
-                }
-                IconButton(onClick = onOpenSettings) { Icon(Icons.Filled.Settings, contentDescription = "Ayarlar", tint = Color.White) }
+        // The place is the subtitle: tap it to change.
+        ScreenHeader(
+            title = "Vakitler",
+            subtitle = "📍 ${schedule.location.label}",
+            onSubtitle = onPickLocation,
+            onSettings = onOpenSettings,
+            modifier = Modifier.widthIn(max = Noor.MaxWidth + Noor.Gutter * 2),
+        ) {
+            if (refreshing) {
+                CircularProgressIndicator(Modifier.padding(12.dp).size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = "Yenile", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
+        }
+        Column(Modifier.widthIn(max = Noor.MaxWidth).padding(horizontal = Noor.Gutter)) {
             Text(greeting, color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.bodyMedium)
 
             Spacer(Modifier.height(28.dp))
@@ -312,6 +302,7 @@ private fun Content(
                 InfoCard(
                     "Kıble saati ${TurkishText.hhmm(q)}",
                     "Bu saatte güneş tam kıble yönünde: güneşe dönen kıbleye dönmüş olur.",
+                    color = Glass,
                 )
             }
 
@@ -334,9 +325,9 @@ private fun TimesCard(day: DayTimes, current: Prayer?, now: Instant) {
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.Black.copy(alpha = 0.38f))
-            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), RoundedCornerShape(24.dp))
+            .clip(Noor.Card)
+            .background(Glass)
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), Noor.Card)
             .padding(vertical = 8.dp),
     ) {
         for (p in Prayer.entries) {
@@ -376,22 +367,6 @@ private fun TimesCard(day: DayTimes, current: Prayer?, now: Instant) {
 }
 
 @Composable
-fun InfoCard(title: String, text: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
-    Column(
-        modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.Black.copy(alpha = 0.32f))
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(16.dp),
-    ) {
-        Text(title, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(4.dp))
-        Text(text, color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-@Composable
 private fun HolyDayCard(e: HolyDayEvent, today: LocalDate) {
     val days = ChronoUnit.DAYS.between(today, e.date)
     val title = when {
@@ -403,6 +378,7 @@ private fun HolyDayCard(e: HolyDayEvent, today: LocalDate) {
     InfoCard(
         title,
         "${TurkishText.longDate(e.date)}${if (e.day.night) " (gecesi)" else ""}",
+        color = Glass,
     )
 }
 
@@ -413,6 +389,7 @@ private fun NoteCard(onMessage: (String) -> Unit) {
     InfoCard(
         "Günün notu ✦",
         note.text + (note.source?.let { "\n— $it" } ?: ""),
+        color = Glass,
         onClick = { HanifeBetul.find(context, HanifeBetul.Surprise.NOTE)?.let(onMessage) },
     )
 }
@@ -443,27 +420,21 @@ private fun MonthlySheet(schedule: PrayerSchedule, now: Instant, onDismiss: () -
     val days = remember(schedule, today) {
         generateSequence(today) { it.plusDays(1) }.takeWhile { !it.isAfter(until) }.mapNotNull { schedule.day(it) }.toList()
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-        Text(
-            "İmsakiye · ${schedule.location.label}",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-        )
-        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+    NoorSheet("İmsakiye", onDismiss, subtitle = schedule.location.label, scroll = false) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             Text("", Modifier.weight(1.5f))
             for (p in Prayer.entries) {
                 Text(p.title, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary)
             }
         }
-        LazyColumn(Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+        LazyColumn(Modifier.fillMaxWidth()) {
             items(days, key = { it.date.toEpochDay() }) { d ->
                 val isToday = d.date == today
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.Transparent)
                         .padding(horizontal = 4.dp, vertical = 7.dp),
                 ) {

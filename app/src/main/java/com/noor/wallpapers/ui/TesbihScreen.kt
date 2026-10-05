@@ -94,7 +94,7 @@ object Dhikrs {
  * light tick each time, a stronger one at the end of a round. Counts are kept.
  */
 @Composable
-fun TesbihScreen(onMessage: (String) -> Unit) {
+fun TesbihScreen(onMessage: (String) -> Unit, onOpenSettings: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val s = remember { AppSettings(context) }
@@ -174,23 +174,18 @@ fun TesbihScreen(onMessage: (String) -> Unit) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().statusBarsPadding().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxSize().padding(bottom = 12.dp),
         ) {
-            Text("Zikirmatik", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 16.dp)) {
+            ScreenHeader("Zikir", subtitle = "Boncuklara dokun ya da ses tuşuna bas", onSettings = onOpenSettings)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = Noor.Gutter)) {
                 items(Dhikrs.ALL, key = { it.id }) { d ->
-                    FilterChip(
-                        selected = d.id == preset.id,
-                        onClick = {
-                            if (d.id != preset.id) {
-                                preset = d
-                                s.tesbihPreset = d.id
-                                reset()
-                            }
-                        },
-                        label = { Text(d.title) },
-                    )
+                    NoorChip(d.title, d.id == preset.id) {
+                        if (d.id != preset.id) {
+                            preset = d
+                            s.tesbihPreset = d.id
+                            reset()
+                        }
+                    }
                 }
             }
             Spacer(Modifier.height(16.dp))

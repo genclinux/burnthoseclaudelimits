@@ -35,13 +35,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,7 +53,6 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -86,6 +84,7 @@ fun GalleryScreen(
     onOpen: (Selection) -> Unit,
     onDedication: () -> Unit,
     onBetulTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
     picks: List<String>? = null,
     onStartPicking: () -> Unit = {},
     onTogglePick: (String) -> Unit = {},
@@ -97,7 +96,6 @@ fun GalleryScreen(
     photoGrid: @Composable (PaddingValues, @Composable () -> Unit) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
-    val scroll = TopAppBarDefaults.pinnedScrollBehavior()
     val greeting = remember {
         HanifeBetul.greeting(LocalDateTime.now(), AppSettings(context).birthday, PrayerRepository.hijri(context))
     }
@@ -106,80 +104,60 @@ fun GalleryScreen(
         LaunchedEffect(Unit) { HanifeBetul.find(context, HanifeBetul.Surprise.EMPTY_FAVORITES) }
     }
     Scaffold(
-        modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         bottomBar = { if (picks != null) pickingBar() },
+        // Döngü, labelled and always in reach, instead of an unexplained icon.
+        floatingActionButton = {
+            if (picks == null) {
+                ExtendedFloatingActionButton(
+                    onClick = onStartPicking,
+                    icon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
+                    text = { Text("Döngü") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        },
         topBar = {
             if (picks != null) {
-                TopAppBar(
-                    scrollBehavior = scroll,
-                    navigationIcon = {
-                        IconButton(onClick = onClosePicking) { Icon(Icons.Filled.Close, contentDescription = "Vazgeç") }
-                    },
-                    title = {
-                        Column {
-                            Text("Döngü için seç", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            Text(
-                                "${picks.size} / ${RotationSchedule.MAX} seçildi · sırayla gösterilir",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                )
+                ScreenHeader(
+                    title = "Döngü için seç",
+                    subtitle = "${picks.size} / ${RotationSchedule.MAX} seçildi · sırayla gösterilir",
+                ) {
+                    IconButton(onClick = onClosePicking) { Icon(Icons.Filled.Close, contentDescription = "Vazgeç") }
+                }
             } else {
-                TopAppBar(
-                    scrollBehavior = scroll,
-                    title = {
-                        // Easter egg: tap the title five times.
-                        Column(
-                            Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                                titleTaps++
-                                if (titleTaps >= 5) {
-                                    titleTaps = 0
-                                    HanifeBetul.find(context, HanifeBetul.Surprise.TITLE_TAPS)
-                                    onDedication()
-                                }
-                            },
-                        ) {
-                            Text("HBSnoor", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                            Text(
-                                greeting,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                ScreenHeader(
+                    title = "Galeri",
+                    subtitle = greeting,
+                    // Easter egg: tap the title five times.
+                    onTitle = {
+                        titleTaps++
+                        if (titleTaps >= 5) {
+                            titleTaps = 0
+                            HanifeBetul.find(context, HanifeBetul.Surprise.TITLE_TAPS)
+                            onDedication()
                         }
                     },
-                    actions = {
-                        // ✦ opens her page; a long press paints the app in her colours.
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .combinedClickable(onClick = onDedication, onLongClick = onBetulTheme),
-                        ) {
-                            Text("✦", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = onStartPicking) {
-                            Icon(Icons.Filled.Refresh, contentDescription = "Duvar kağıdı döngüsü", tint = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { onFavoritesOnly(!favoritesOnly) }) {
-                            Icon(
-                                if (favoritesOnly) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                contentDescription = if (favoritesOnly) "Tümünü göster" else "Favorileri göster",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                )
+                    onSettings = onOpenSettings,
+                ) {
+                    // ✦ opens her page; a long press paints the app in her colours.
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .combinedClickable(onClick = onDedication, onLongClick = onBetulTheme),
+                    ) {
+                        Text("✦", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { onFavoritesOnly(!favoritesOnly) }) {
+                        Icon(
+                            if (favoritesOnly) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = if (favoritesOnly) "Tümünü göster" else "Favorileri göster",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
         },
     ) { padding ->
@@ -200,8 +178,8 @@ fun GalleryScreen(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = if (landscape) 220.dp else 150.dp),
                 contentPadding = PaddingValues(
-                    start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(),
-                    bottom = padding.calculateBottomPadding() + 24.dp,
+                    start = Noor.Gutter, end = Noor.Gutter, top = padding.calculateTopPadding(),
+                    bottom = padding.calculateBottomPadding() + 96.dp, // clear of the Döngü button
                 ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -268,6 +246,7 @@ private fun Chip(label: String, arabic: String?, selected: Boolean, onClick: () 
                 }
             }
         },
+        shape = Noor.Pill,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -287,7 +266,7 @@ private fun WallpaperCard(
     pickNumber: Int? = null,
 ) {
     val thumb by rememberThumbnail(sel)
-    val shape = RoundedCornerShape(20.dp)
+    val shape = Noor.Card
     val picked = pickNumber != null && pickNumber > 0
     Box(
         modifier = Modifier

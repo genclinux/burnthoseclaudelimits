@@ -51,7 +51,7 @@ import java.time.temporal.ChronoUnit
 
 /** Takvim: today's Hijri date, a month with Hijri days beneath, and Diyanet's religious days for a year. */
 @Composable
-fun CalendarScreen() {
+fun CalendarScreen(onOpenSettings: () -> Unit) {
     val context = LocalContext.current
     val v = rememberSettingsVersion()
     val hijri = remember(v) { PrayerRepository.hijri(context) }
@@ -67,12 +67,10 @@ fun CalendarScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(20.dp),
+            .padding(bottom = 24.dp),
     ) {
-        Column(Modifier.widthIn(max = 560.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Takvim", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(12.dp))
+        ScreenHeader("Takvim", subtitle = "Hicrî takvim ve dini günler", onSettings = onOpenSettings)
+        Column(Modifier.widthIn(max = Noor.MaxWidth).padding(horizontal = Noor.Gutter), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 "${todayHijri.day} ${todayHijri.monthName} ${todayHijri.year}",
                 fontSize = 30.sp,
@@ -94,16 +92,13 @@ fun CalendarScreen() {
             MonthGrid(month, today, hijri, year, onPrev = { month = month.minusMonths(1) }, onNext = { month = month.plusMonths(1) })
 
             Spacer(Modifier.height(20.dp))
-            Text("Dini günler", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth())
+            SectionTitle("Dini günler", Modifier.fillMaxWidth())
             Spacer(Modifier.height(6.dp))
-            for (e in year) HolyDayRow(e, today)
+            NoorCard { for (e in year) HolyDayRow(e, today) }
             Spacer(Modifier.height(12.dp))
-            Text(
+            Footnote(
                 "Kandiller, adı geçen günün akşamından başlayan gecedir. Tarihler Hicri takvimden hesaplanır ve Diyanet'in " +
                     "vakit tablosundaki Hicri tarihle eşleştirilir; ay başlangıçlarında bir gün fark olabilir.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
             )
         }
     }
@@ -134,7 +129,7 @@ private fun MonthGrid(
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(Noor.Card)
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(12.dp),
     ) {
@@ -196,7 +191,7 @@ private fun HolyDayRow(e: HolyDayEvent, today: LocalDate) {
     val days = ChronoUnit.DAYS.between(today, e.date)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
     ) {
         Box(
             Modifier.size(10.dp).clip(CircleShape).background(

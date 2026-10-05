@@ -74,7 +74,7 @@ private class Heading(val degrees: Float, val unreliable: Boolean)
 
 /** Kıble: a compass that turns with the phone, the Kaaba marked on its rim. */
 @Composable
-fun QiblaScreen(onMessage: (String) -> Unit) {
+fun QiblaScreen(onMessage: (String) -> Unit, onOpenSettings: () -> Unit) {
     val context = LocalContext.current
     val schedule = rememberSchedule()
     val place = schedule?.location?.let { l -> if (l.hasCoordinates) l.latitude!! to l.longitude!! else null }
@@ -82,18 +82,22 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(Noor.Gap),
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .statusBarsPadding()
-                .padding(20.dp),
+                .padding(bottom = 24.dp),
         ) {
-            Text("Kıble", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+            ScreenHeader("Kıble", subtitle = schedule?.location?.label, onSettings = onOpenSettings)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Noor.Gap),
+                modifier = Modifier.widthIn(max = Noor.MaxWidth).padding(horizontal = Noor.Gutter),
+            ) {
             if (place == null) {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Kıble için bir yer gerekiyor; Vakitler sekmesindeki Ayarlar'dan seçebilirsin.",
+                    "Kıble için bir yer gerekiyor; sağ üstteki ⚙ Ayarlar'dan seçebilirsin.",
                     textAlign = TextAlign.Center,
                 )
 
@@ -107,8 +111,7 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    "Kâbe'ye ${"%,d".format(TurkishText.TR, distance.toLong())} km · " +
-                        (schedule?.location?.label ?: ""),
+                    "Kâbe'ye ${"%,d".format(TurkishText.TR, distance.toLong())} km",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 schedule?.day(schedule.today(java.time.Instant.now()))?.qiblaTime?.let { q ->
@@ -124,6 +127,7 @@ fun QiblaScreen(onMessage: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
+            }
             }
         }
     }

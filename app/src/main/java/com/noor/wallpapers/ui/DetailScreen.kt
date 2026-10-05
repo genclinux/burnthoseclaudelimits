@@ -278,44 +278,37 @@ fun DetailScreen(
     }
 
     if (sheet) {
-        ModalBottomSheet(onDismissRequest = { sheet = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-            Column(Modifier.padding(bottom = 24.dp)) {
-                Text(
-                    "Nereye uygulansın?",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                )
-                val applied = HanifeBetul.Surprise.APPLIED
-                SheetOption(Icons.Filled.Home, "Ana ekran") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.HOME) }
+        NoorSheet("Nereye uygulansın?", onDismiss = { sheet = false }, subtitle = title) {
+            val applied = HanifeBetul.Surprise.APPLIED
+            SheetOption(Icons.Filled.Home, "Ana ekran") {
+                sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.HOME) }
+            }
+            SheetOption(Icons.Filled.Lock, "Kilit ekranı") {
+                sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.LOCK) }
+            }
+            SheetOption(Icons.Filled.Star, "Ana ekran ve kilit ekranı") {
+                sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.BOTH) }
+            }
+            SheetOption(Icons.Filled.PlayArrow, "Canlı duvar kağıdı (yıldızlar ve vakitler)") {
+                sheet = false
+                try {
+                    // She chose this design, so the live wallpaper shows it rather than following the day.
+                    settings.liveFollowsPrayer = false
+                    context.startActivity(Wallpapers.liveWallpaperIntent(context, sel))
+                    HanifeBetul.find(context, HanifeBetul.Surprise.LIVE)
+                } catch (_: ActivityNotFoundException) {
+                    scope.launch { snackbar.showSnackbar("Bu cihaz canlı duvar kağıdını desteklemiyor") }
                 }
-                SheetOption(Icons.Filled.Lock, "Kilit ekranı") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.LOCK) }
-                }
-                SheetOption(Icons.Filled.Star, "Ana ekran ve kilit ekranı") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.BOTH) }
-                }
-                SheetOption(Icons.Filled.PlayArrow, "Canlı duvar kağıdı (yıldızlar ve vakitler)") {
-                    sheet = false
-                    try {
-                        // She chose this design, so the live wallpaper shows it rather than following the day.
-                        settings.liveFollowsPrayer = false
-                        context.startActivity(Wallpapers.liveWallpaperIntent(context, sel))
-                        HanifeBetul.find(context, HanifeBetul.Surprise.LIVE)
-                    } catch (_: ActivityNotFoundException) {
-                        scope.launch { snackbar.showSnackbar("Bu cihaz canlı duvar kağıdını desteklemiyor") }
-                    }
-                }
-                SheetOption(NoorIcons.Vakit, "Vakit widget'ının arka planı") {
-                    sheet = false
-                    settings.widgetSelection = sel.encode()
-                    Background.executor.execute { PrayerWidget.updateAll(context.applicationContext) }
-                    say("Namaz vakitleri widget'ı artık bu tasarımla ✨")
-                }
-                SheetOption(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet (PNG)") {
-                    sheet = false
-                    act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.seed}") }
-                }
+            }
+            SheetOption(NoorIcons.Vakit, "Vakit widget'ının arka planı") {
+                sheet = false
+                settings.widgetSelection = sel.encode()
+                Background.executor.execute { PrayerWidget.updateAll(context.applicationContext) }
+                say("Namaz vakitleri widget'ı artık bu tasarımla ✨")
+            }
+            SheetOption(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet (PNG)") {
+                sheet = false
+                act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.seed}") }
             }
         }
     }
@@ -345,11 +338,4 @@ private fun RoundAction(icon: ImageVector, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SheetOption(icon: ImageVector, label: String, onClick: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(label) },
-        leadingContent = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clickable(onClick = onClick),
-    )
-}
+private fun SheetOption(icon: ImageVector, label: String, onClick: () -> Unit) = OptionRow(label, icon = icon, onClick = onClick)

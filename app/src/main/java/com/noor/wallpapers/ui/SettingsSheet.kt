@@ -31,11 +31,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -116,25 +120,20 @@ fun SettingsSheet(
         }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
-        ) {
-            Text("Ayarlar", style = MaterialTheme.typography.titleLarge)
+    NoorSheet("Ayarlar", onDismiss) {
+        SectionTitle("Konum")
+        NoorCard {
+            OptionRow(
+                s.location?.label ?: "Seçilmedi",
+                icon = Icons.Filled.LocationOn,
+                subtitle = "Vakitler ve kıble bu yere göre",
+                onClick = onPickLocation,
+                trailing = { Text("Değiştir", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge) },
+            )
+        }
 
-            Section("Konum")
-            val loc = s.location
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(loc?.label ?: "Seçilmedi", modifier = Modifier.weight(1f))
-                OutlinedButton(onClick = onPickLocation) { Text("Değiştir") }
-            }
-
-            Section("Vakit bildirimleri")
+        SectionTitle("Bildirimler")
+        NoorCard {
             SwitchRow("Vakit girince bildir", "İstersen vakitten önce de hatırlatır.", notifyOn) { on ->
                 if (on && Build.VERSION.SDK_INT >= 33 && !Notifications.permitted(context)) {
                     notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -164,54 +163,85 @@ fun SettingsSheet(
                         }
                     }
                 }
-                Label("Hangi vakitler")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FieldLabel("Hangi vakitler")
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     for (p in Prayer.entries) {
-                        FilterChip(
-                            selected = p in prayers,
-                            onClick = {
-                                prayers = if (p in prayers) prayers - p else prayers + p
-                                s.notifyPrayers = prayers
-                                applyAlarms()
-                            },
-                            label = { Text(p.title) },
-                        )
+                        NoorChip(p.title, p in prayers) {
+                            prayers = if (p in prayers) prayers - p else prayers + p
+                            s.notifyPrayers = prayers
+                            applyAlarms()
+                        }
                     }
                 }
-                Label("Önceden hatırlat")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    for (m in listOf(0, 5, 10, 15, 20, 30, 45)) {
-                        FilterChip(
-                            selected = remind == m,
-                            onClick = { remind = m; s.reminderMinutes = m; applyAlarms() },
-                            label = { Text(if (m == 0) "Hayır" else "$m dk") },
-                        )
-                    }
+                FieldLabel("Önceden hatırlat")
+                ChoiceChips(listOf(0, 5, 10, 15, 20, 30, 45).map { it to if (it == 0) "Hayır" else "$it dk" }, remind) { m ->
+                    remind = m; s.reminderMinutes = m; applyAlarms()
                 }
                 SwitchRow("Kandil ve bayram tebrikleri", "Kandil gecesi akşam ezanında, bayram sabahı güneş doğarken.", holy) {
                     holy = it; s.holyDayNotifications = it
                 }
-                OutlinedButton(onClick = { Notifications.test(context) }) { Text("Deneme bildirimi gönder") }
+                TextButton(onClick = { Notifications.test(context) }) { Text("Deneme bildirimi gönder") }
             }
+        }
 
-            Section("Canlı duvar kağıdında vakitler")
-            Label("Vakit paneli")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(selected = overlay == null, onClick = { overlay = null; s.overlayPosition = null }, label = { Text("Kapalı") })
-                for (p in OverlayPosition.entries) {
-                    FilterChip(selected = overlay == p, onClick = { overlay = p; s.overlayPosition = p }, label = { Text(p.title) })
+        SectionTitle("Duvar kağıdı")
+        NoorCard {
+            OptionRow(
+                "Döngü",
+                icon = Icons.Filled.Refresh,
+                subtitle = if (rotating) {
+                    "${RotationAlarms.designs(context).size} tasarım, ${s.rotationInterval.title.replaceFirstChar { it.lowercase() }} değişiyor" +
+                        if (s.rotationLive) " · canlı" else ""
+                } else {
+                    "10 taneye kadar duvar kağıdı seç, sırayla değişsin"
+                },
+                onClick = onEditRotation,
+                trailing = {
+                    if (rotating) {
+                        TextButton(onClick = {
+                            RotationAlarms.stop(context)
+                            rotating = false
+                            onRotationChanged()
+                            onMessage("Döngü durduruldu")
+                        }) { Text("Durdur") }
+                    } else {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+            )
+            SwitchRow("Her gün yeni duvar kağıdı", "Kendiliğinden yeni bir tasarım; doğum gününde sana özel olanı. Döngünün yerini alır.", daily) {
+                daily = it; s.dailyWallpaper = it
+                if (it && rotating) {
+                    RotationAlarms.stop(context)
+                    rotating = false
+                    onRotationChanged()
                 }
+                Work.ensure(context)
+                if (it) {
+                    Work.dailyNow(context)
+                    onMessage("İlk duvar kağıdı hazırlanıyor… ✨")
+                }
+            }
+            if (daily) {
+                FieldLabel("Nereden seçilsin")
+                ChoiceChips(DailySource.entries.map { it to it.title }, source) { source = it; s.dailySource = it }
+                FieldLabel("Nereye")
+                ChoiceChips(listOf("HOME" to "Ana ekran", "LOCK" to "Kilit ekranı", "BOTH" to "İkisi de"), target) { target = it; s.dailyTarget = it }
+                TextButton(onClick = { Work.dailyNow(context); onMessage("Yeni duvar kağıdı hazırlanıyor… ✨") }) { Text("Şimdi değiştir") }
+            }
+        }
+
+        SectionTitle("Canlı duvar kağıdı")
+        NoorCard {
+            FieldLabel("Vakit paneli")
+            ChoiceChips(listOf<Pair<OverlayPosition?, String>>(null to "Kapalı") + OverlayPosition.entries.map { it to it.title }, overlay) {
+                overlay = it; s.overlayPosition = it
             }
             if (overlay != null) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    for (st in OverlayStyle.entries) {
-                        FilterChip(
-                            selected = style == st,
-                            onClick = { style = st; s.overlayStyle = st },
-                            label = { Text(if (st == OverlayStyle.COMPACT) "Sade: sıradaki vakit" else "Ayrıntılı: altı vakit") },
-                        )
-                    }
-                }
+                ChoiceChips(
+                    OverlayStyle.entries.map { it to if (it == OverlayStyle.COMPACT) "Sade: sıradaki vakit" else "Ayrıntılı: altı vakit" },
+                    style,
+                ) { style = it; s.overlayStyle = it }
             }
             SwitchRow("Vakte göre değişen tasarım", "Seherde şafak, öğlende çini, akşamda gün batımı, gece yıldızlar.", follows) {
                 follows = it; s.liveFollowsPrayer = it
@@ -230,58 +260,11 @@ fun SettingsSheet(
                     onMessage("Bu cihaz canlı duvar kağıdını desteklemiyor")
                 }
             }) { Text("Canlı duvar kağıdını kur") }
+        }
 
-            Section("Her gün yeni duvar kağıdı")
-            SwitchRow("Günlük duvar kağıdı", "Her gün kendiliğinden yeni bir tasarım; doğum gününde sana özel olanı. Canlı duvar kağıdının yerini alır.", daily) {
-                daily = it; s.dailyWallpaper = it
-                if (it && rotating) {
-                    RotationAlarms.stop(context)
-                    rotating = false
-                    onRotationChanged()
-                }
-                Work.ensure(context)
-                if (it) {
-                    Work.dailyNow(context)
-                    onMessage("İlk duvar kağıdı hazırlanıyor… ✨")
-                }
-            }
-            if (daily) {
-                Label("Nereden seçilsin")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    for (d in DailySource.entries) {
-                        FilterChip(selected = source == d, onClick = { source = d; s.dailySource = d }, label = { Text(d.title) })
-                    }
-                }
-                Label("Nereye")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    for ((t, label) in listOf(Target.HOME to "Ana ekran", Target.LOCK to "Kilit ekranı", Target.BOTH to "İkisi de")) {
-                        FilterChip(selected = target == t.name, onClick = { target = t.name; s.dailyTarget = t.name }, label = { Text(label) })
-                    }
-                }
-                OutlinedButton(onClick = { Work.dailyNow(context); onMessage("Yeni duvar kağıdı hazırlanıyor… ✨") }) { Text("Şimdi değiştir") }
-            }
-
-            Section("Duvar kağıdı döngüsü")
-            Text(
-                if (rotating) "${RotationAlarms.designs(context).size} tasarım, ${s.rotationInterval.title.replaceFirstChar { it.lowercase() }} değişiyor" +
-                    (if (s.rotationLive) " (canlı duvar kağıdında)." else ".")
-                else "Galeri'den 10 taneye kadar duvar kağıdı seç; 10 dakikada, saatte ya da günde bir sırayla değişsin, istersen canlı duvar kağıdında. Günlük duvar kağıdının yerini alır.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = onEditRotation) { Text(if (rotating) "Seçimi düzenle" else "Tasarımları seç") }
-                if (rotating) {
-                    OutlinedButton(onClick = {
-                        RotationAlarms.stop(context)
-                        rotating = false
-                        onRotationChanged()
-                        onMessage("Döngü durduruldu")
-                    }) { Text("Durdur") }
-                }
-            }
-
-            Section("Uygulamanın renkleri")
+        SectionTitle("Görünüm")
+        NoorCard {
+            FieldLabel("Uygulamanın renkleri")
             val palettes = remember { listOf<Palette?>(null) + Palette.ALL.filter { it.id != "emerald" } + s.customPalettes.map { Palette.byId(it) } }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 for (p in palettes) {
@@ -308,8 +291,10 @@ fun SettingsSheet(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
 
-            Section("Ana ekran widget'ı")
+        SectionTitle("Ana ekran widget'ı")
+        NoorCard {
             Text(
                 "Sıradaki vakti ve kalan süreyi gösterir. Arkasındaki tasarımı bir duvar kağıdının \"Duvar kağıdı yap\" menüsünden seçebilirsin.",
                 style = MaterialTheme.typography.bodySmall,
@@ -321,39 +306,21 @@ fun SettingsSheet(
                     manager.requestPinAppWidget(ComponentName(context, PrayerWidget::class.java), null, null)
                 }) { Text("Widget'ı ana ekrana ekle") }
             }
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            Text(
-                "Vakitler: T.C. Diyanet İşleri Başkanlığı (ezanvakti hizmeti aracılığıyla). İnternet yokken vakitler Diyanet " +
-                    "yöntemiyle hesaplanır ve Diyanet'in tablosuyla karşılaştırılarak düzeltilir.\n" +
-                    "Gerçek Camiler: Wikimedia Commons; her fotoğraf kendi fotoğrafçısının özgür lisansıyla (CC BY, CC BY-SA, CC0).\nHBSnoor · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
+
+        Footnote(
+            "Vakitler: T.C. Diyanet İşleri Başkanlığı (ezanvakti hizmeti aracılığıyla). İnternet yokken vakitler Diyanet " +
+                "yöntemiyle hesaplanır ve Diyanet'in tablosuyla karşılaştırılarak düzeltilir.\n" +
+                "Gerçek Camiler: Wikimedia Commons; her fotoğraf kendi fotoğrafçısının özgür lisansıyla (CC BY, CC BY-SA, CC0).\n" +
+                "HBSnoor · Sürüm ${rememberVersionName()} · ${HanifeBetul.NAME} için ♡",
+            Modifier.padding(top = 8.dp),
+        )
     }
-}
-
-@Composable
-private fun Section(title: String) {
-    Spacer(Modifier.height(6.dp))
-    Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-}
-
-@Composable
-private fun Label(text: String) {
-    Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
 private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onChange(!checked) }) {
-        Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            Text(title)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
+    OptionRow(title, subtitle = subtitle, onClick = { onChange(!checked) }, trailing = { Switch(checked = checked, onCheckedChange = onChange) })
 }
 
 @Composable
@@ -362,7 +329,7 @@ private fun Hint(text: String, onFix: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer, Noor.Tile)
             .clickable(onClick = onFix)
             .padding(12.dp),
     ) {

@@ -64,7 +64,7 @@ import com.noor.wallpapers.ui.NoorTheme
 import com.noor.wallpapers.ui.PrayerScreen
 import com.noor.wallpapers.ui.QiblaScreen
 import com.noor.wallpapers.ui.RotationBar
-import com.noor.wallpapers.ui.RotationIntroDialog
+import com.noor.wallpapers.ui.WhatsNewDialog
 import com.noor.wallpapers.ui.SettingsSheet
 import com.noor.wallpapers.ui.TesbihScreen
 import com.noor.wallpapers.ui.WelcomeDialog
@@ -112,6 +112,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val EXTRA_TAB = "tab"
         const val TAB_PRAYER = "vakitler"
+        const val TAB_PHOTOS = "fotograflar"
+        const val TAB_SETTINGS = "ayarlar"
     }
 }
 
@@ -159,7 +161,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         var dedication by rememberSaveable { mutableStateOf(false) }
         var picking by rememberSaveable { mutableStateOf(false) }
         var settingsOpen by rememberSaveable { mutableStateOf(false) }
-        var rotationIntro by remember { mutableStateOf(!prefs.rotationIntroSeen) }
+        // "Yeni": features she hasn't been told about. A first install only hears about this version's.
+        val firstInstall = remember { !prefs.welcomed }
+        var news by remember { mutableStateOf(WhatsNew.toShow(prefs.seenFeatures, firstInstall)) }
         // Designs being chosen for the rotation, in order; null when not choosing.
         var picks by rememberSaveable { mutableStateOf<List<String>?>(null) }
         var rotationRunning by remember { mutableStateOf(RotationAlarms.active(context)) }
@@ -171,7 +175,12 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         }
 
         LaunchedEffect(requestedTab) {
-            Tab.entries.firstOrNull { it.key == requestedTab }?.let { tab = it; openEncoded = null }
+            Tab.entries.firstOrNull { it.key == requestedTab }?.let { tab = it; openEncoded = null; photos = false }
+            // Also reachable from outside: the real photos and the settings.
+            when (requestedTab) {
+                MainActivity.TAB_PHOTOS -> { tab = Tab.GALLERY; openEncoded = null; photos = true }
+                MainActivity.TAB_SETTINGS -> settingsOpen = true
+            }
             if (requestedTab != null) onTabHandled()
         }
         LaunchedEffect(Unit) {
@@ -211,10 +220,19 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
         }
 
         // After the welcome, so a new install sees one dialog at a time.
-        if (rotationIntro && !welcome) {
-            RotationIntroDialog(
-                onTry = { prefs.rotationIntroSeen = true; rotationIntro = false; startPicking() },
-                onDismiss = { prefs.rotationIntroSeen = true; rotationIntro = false },
+        if (news.isNotEmpty() && !welcome) {
+            WhatsNewDialog(
+                features = news,
+                onAction = { action ->
+                    when (action) {
+                        WhatsNew.Action.PICK_ROTATION -> startPicking()
+                        WhatsNew.Action.OPEN_PHOTOS -> { tab = Tab.GALLERY; openEncoded = null; photos = true }
+                    }
+                },
+                onDone = {
+                    prefs.seenFeatures = WhatsNew.seenAfter(prefs.seenFeatures, news, firstInstall)
+                    news = emptyList()
+                },
             )
         }
         if (dedication) {
@@ -363,6 +381,7 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                             },
                                         )
                                     },
+                                    onOpenSettings = { settingsOpen = true },
                                     onBetulTheme = {
                                         settings.themePalette = if (settings.themePalette == "betul") null else "betul"
                                         themeVersion++
@@ -371,9 +390,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                                     },
                                 )
                             }
-                            Tab.QIBLA -> QiblaScreen(onMessage = ::say)
-                            Tab.TESBIH -> TesbihScreen(onMessage = ::say)
-                            Tab.CALENDAR -> CalendarScreen()
+                            Tab.QIBLA -> QiblaScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
+                            Tab.TESBIH -> TesbihScreen(onMessage = ::say, onOpenSettings = { settingsOpen = true })
+                            Tab.CALENDAR -> CalendarScreen(onOpenSettings = { settingsOpen = true })
                         }
                     }
                 }
