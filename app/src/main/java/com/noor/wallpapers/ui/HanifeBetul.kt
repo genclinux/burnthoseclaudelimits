@@ -114,16 +114,33 @@ object HanifeBetul {
     const val EMPTY_FAVOURITES =
         "Henüz favorin yok, $NAME. Beğendiğin bir duvar kağıdındaki kalbe dokun, burada seni beklesin. 💚"
 
-    /** A line under each prayer-time notification. */
-    fun prayerNote(p: Prayer, date: LocalDate = LocalDate.now()): String = daily(
-        when (p) {
-            Prayer.OGLE -> listOf("Günün ortasında kısa bir mola: Allah kabul etsin.", "Öğlenin huzuru üzerine olsun, $NAME.")
-            Prayer.IKINDI -> listOf("Günün yorgunluğunu ikindiyle bırak, $NAME.", "İkindinin serinliği gönlüne değsin.")
-            Prayer.AKSAM -> listOf("Güneş battı; akşamın hayırlı olsun, $NAME.", "Akşamın nuru evine dolsun.")
-            Prayer.YATSI -> listOf("Günü yatsıyla kapat; hayırlı geceler, $NAME.", "Gecen huzurlu, uykun tatlı olsun.")
-            else -> listOf("Allah kabul etsin, $NAME.")
-        },
-        date, p.ordinal,
+    /**
+     * Under each prayer-time notification: a verse (Diyanet's meal) or hadith
+     * about that prayer, with its source. Nothing made up.
+     */
+    fun prayerNote(p: Prayer, date: LocalDate = LocalDate.now()): Note? = PRAYER_NOTES[p]?.let { daily(it, date, p.ordinal) }
+
+    private val PRAYER_NOTES = mapOf(
+        Prayer.IMSAK to listOf(
+            Note("Namaz uykudan hayırlıdır.", "Sabah ezanı"),
+            Note("Sabah namazını kılan kimse Allah'ın himayesindedir.", "Müslim, Mesâcid 261"),
+        ),
+        Prayer.OGLE to listOf(
+            Note("Şüphesiz namaz, müminlere belirli vakitlerde farz kılınmıştır.", "Nisâ 4:103"),
+            Note("Allah katında amellerin en sevimlisi, vaktinde kılınan namazdır.", "Buhârî, Mevâkît 5"),
+        ),
+        Prayer.IKINDI to listOf(
+            Note("Namazlara ve orta namaza devam edin. Allah'a gönülden boyun eğerek namaza durun.", "Bakara 2:238"),
+            Note("İki serin vakitte, sabah ve ikindide namaz kılan cennete girer.", "Buhârî, Mevâkît 26"),
+        ),
+        Prayer.AKSAM to listOf(
+            Note("Akşama girdiğinizde ve sabaha erdiğinizde Allah'ı tesbih edin.", "Rûm 30:17"),
+            Note("Gündüzün iki tarafında ve gecenin gündüze yakın vakitlerinde namaz kıl. Şüphesiz iyilikler kötülükleri giderir.", "Hûd 11:114"),
+        ),
+        Prayer.YATSI to listOf(
+            Note("Gecenin bir kısmında O'na secde et ve O'nu geceleyin uzun uzun tesbih et.", "İnsân 76:26"),
+            Note("Yatarken: \"Allah'ım, Senin adınla ölür, Senin adınla dirilirim.\"", "Buhârî, Daavât 7"),
+        ),
     )
 
     fun holyDayMessage(e: HolyDayEvent): Pair<String, String> = when (e.day) {
@@ -206,9 +223,6 @@ object HanifeBetul {
         Note("Ebru gibi: her gün başka renkler, aynı güzellik.", null),
         Note("Sabah namazının huzuru bütün güne yetsin.", null),
         Note("İçinden geçen güzel şeyler bir gün dua olarak geri döner.", null),
-        Note("Pendik sahilinde akşam: güneş Adalar'ın arkasına inerken bir dua da senden.", null),
-        Note("Martılar vapurun peşinde, dualar senin peşinde. Hayırlı yolculuklar.", null),
-        Note("Kıble buradan 152 derece; kalbinse her yerden aynı yöne.", null),
     )
 
     fun noteOfTheDay(date: LocalDate = LocalDate.now()): Note {

@@ -14,8 +14,8 @@ android {
         // scoped-storage saving permission-free and still covers older phones.
         minSdk = 29
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.2.2"
+        versionCode = 9
+        versionName = "1.2.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -86,22 +86,30 @@ object Notifications {
         }
     }
 
-    /** The time has come. [ramadan] changes İmsak and Akşam into sahur and iftar. */
+    /**
+     * The time has come. The collapsed notification is just the time and
+     * place; expanded, it carries a verse or hadith about that prayer.
+     * [ramadan] changes İmsak and Akşam into sahur and iftar.
+     */
     fun prayer(context: Context, event: PrayerEvent, place: String, ramadan: Boolean) {
         val time = TurkishText.hhmm(event.time)
-        val name = HanifeBetul.NAME
-        val (title, text) = when (event.prayer) {
-            Prayer.IMSAK -> if (ramadan) "İmsak vakti · sahur sona erdi" to "Allah orucunu kabul etsin, $name 🌙"
-            else "Sabah namazının vakti girdi" to "Güne namazla başla, $name ☀️"
-            Prayer.GUNES -> "Güneş doğdu" to "Sabah namazının vakti çıktı · $time"
-            Prayer.OGLE -> if (event.day.date.dayOfWeek == java.time.DayOfWeek.FRIDAY) "Cuma vakti 🕌" to "Hayırlı Cumalar, $name"
-            else "Öğle vakti girdi 🕌" to HanifeBetul.prayerNote(event.prayer)
-            Prayer.IKINDI -> "İkindi vakti girdi" to HanifeBetul.prayerNote(event.prayer)
-            Prayer.AKSAM -> if (ramadan) "İftar vakti! 🌙" to "Allah kabul etsin, $name. Hayırlı iftarlar."
-            else "Akşam vakti girdi" to HanifeBetul.prayerNote(event.prayer)
-            Prayer.YATSI -> "Yatsı vakti girdi ✨" to HanifeBetul.prayerNote(event.prayer)
+        val friday = event.prayer == Prayer.OGLE && event.day.date.dayOfWeek == java.time.DayOfWeek.FRIDAY
+        val (title, line) = when (event.prayer) {
+            Prayer.IMSAK -> if (ramadan) "İmsak vakti · sahur sona erdi" to "Allah orucunu kabul etsin." else "Sabah namazının vakti girdi" to null
+            Prayer.GUNES -> "Güneş doğdu" to "Sabah namazının vakti çıktı."
+            Prayer.OGLE -> if (friday) "Cuma vakti" to "Hayırlı Cumalar." else "Öğle vakti girdi" to null
+            Prayer.IKINDI -> "İkindi vakti girdi" to null
+            Prayer.AKSAM -> if (ramadan) "İftar vakti" to "Allah kabul etsin. Hayırlı iftarlar." else "Akşam vakti girdi" to null
+            Prayer.YATSI -> "Yatsı vakti girdi" to null
         }
-        post(context, ID_PRAYER, CH_PRAYER, title, "$text · $time · $place")
+        val text = "$time · $place"
+        val note = if (line == null) HanifeBetul.prayerNote(event.prayer) else null
+        val big = when {
+            line != null -> "$line\n$text"
+            note != null -> "$text\n\n${note.text}\n— ${note.source}"
+            else -> text
+        }
+        post(context, ID_PRAYER, CH_PRAYER, title, if (line != null) "$line · $text" else text, big)
     }
 
     fun reminder(context: Context, event: PrayerEvent, minutes: Int) {
