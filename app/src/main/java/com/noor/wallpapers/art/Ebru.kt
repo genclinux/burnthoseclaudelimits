@@ -220,8 +220,9 @@ object Ebru {
         left: Double, top: Double, right: Double, bottom: Double, maxPixels: Int = 420_000,
     ): RasterItem {
         val w = right - left; val h = bottom - top
-        // Marbling is soft: half the canvas pixels (capped) upscales invisibly.
-        val budget = minOf(maxPixels.toDouble(), w * h / 2)
+        // Marbling is soft: a quarter of the canvas pixels (capped) upscales invisibly,
+        // and keeps thumbnails quick enough that a palette change shows at once.
+        val budget = minOf(maxPixels.toDouble(), w * h / 4)
         val scale = maxOf(1.0, sqrt(w * h / budget))
         val tw = (w / scale).toInt().coerceAtLeast(1); val th = (h / scale).toInt().coerceAtLeast(1)
         // The marbler works a square tray as big as the long side, centred on the canvas,

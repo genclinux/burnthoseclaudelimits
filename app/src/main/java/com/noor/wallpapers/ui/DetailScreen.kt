@@ -96,6 +96,8 @@ fun DetailScreen(
     val snackbar = remember { SnackbarHostState() }
     var sel by remember { mutableStateOf(initial) }
     var full by remember { mutableStateOf<Bitmap?>(null) }
+    /** The selection [full] was rendered for; while it differs from [sel] the sharp preview is stale. */
+    var fullSel by remember { mutableStateOf<Selection?>(null) }
     var rendering by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
     var controls by remember { mutableStateOf(true) }
@@ -120,6 +122,7 @@ fun DetailScreen(
     LaunchedEffect(sel, viewport) {
         rendering = true
         full = Wallpapers.renderViewport(context, sel, viewport.width, viewport.height)
+        fullSel = sel
         rendering = false
         // While she is still choosing colours, don't remember the half-made palette.
         if (editingPalette == null) onChanged(sel)
@@ -148,7 +151,10 @@ fun DetailScreen(
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        val shown: ImageBitmap? = full?.asImageBitmap() ?: thumb
+        // After a palette or shuffle, show the new colours at once (the quick low-res
+        // thumbnail) instead of the old picture, then the sharp render when it lands.
+        val stale = fullSel != sel
+        val shown: ImageBitmap? = if (stale) (thumb ?: full?.asImageBitmap()) else full?.asImageBitmap() ?: thumb
         if (shown != null) {
             Image(
                 shown,
@@ -160,6 +166,20 @@ fun DetailScreen(
                         controls = !controls
                     },
             )
+        }
+
+        if (stale && rendering) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .background(Color.Black.copy(alpha = 0.55f), androidx.compose.foundation.shape.RoundedCornerShape(50))
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+            ) {
+                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White)
+                Spacer(Modifier.size(10.dp))
+                Text("Yeni renkler hazırlanıyor…", color = Color.White, style = MaterialTheme.typography.labelLarge)
+            }
         }
 
         AnimatedVisibility(controls, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.align(Alignment.TopStart)) {
