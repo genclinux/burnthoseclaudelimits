@@ -21,12 +21,19 @@ class Entry(
     val category: Category,
     val defaultPalette: Palette,
     val defaultSeed: Int = 1,
+    /** Hidden from the gallery until she finds it. */
+    val secret: Boolean = false,
+    /** Uses DesignOptions.text: the design is written in her own words. */
+    val editableText: Boolean = false,
     private val builder: (RenderContext) -> Scene,
 ) {
     fun render(ctx: RenderContext): Scene {
         val scene = builder(ctx)
-        val sig = SceneBuilder(ctx.width, ctx.height).apply { Common.signature(this, ctx) }
-        return Scene(scene.width, scene.height, scene.items + sig.items)
+        val extra = SceneBuilder(ctx.width, ctx.height).apply {
+            if (ctx.options.dim > 0f) fill(Common.fullRect(ctx), Colors.BLACK, ctx.options.dim)
+            Common.signature(this, ctx)
+        }
+        return Scene(scene.width, scene.height, scene.items + extra.items)
     }
 }
 
@@ -65,6 +72,18 @@ object Catalog {
         add(Entry("hb-rosette", "Betül Gülü", hb, betul) { ctx ->
             GeometricArt.scene(ctx, GeometricArt.Params(Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, 72.0, 95.0))
         })
+        add(Entry("hb-kendi-sozun", "Kendi Sözün", hb, betul, 3, editableText = true) { ctx -> CustomTextArt.scene(ctx) })
+        add(Entry("hb-name-ruqaa", "Hanife Betül · Rik'a", hb, pal("isfahan")) { ctx ->
+            CalligraphyArt.scene(ctx, CalligraphyArt.Params(Phrases.HANIFE_BETUL, CalligraphyArt.Script.RUQAA, Tiling.OCTAGON_SQUARE))
+        })
+        add(Entry("hb-name-kufi", "Hanife Betül · Kûfî", hb, pal("onyx")) { ctx ->
+            CalligraphyArt.scene(ctx, CalligraphyArt.Params(Phrases.HANIFE_BETUL, CalligraphyArt.Script.KUFI, Tiling.SQUARE))
+        })
+        add(Entry("hb-nur-ayeti", "Nûr Ayeti · 24:35", hb, betul, 6) { ctx ->
+            LevhaArt.scene(ctx, LevhaArt.Params(Phrases.NUR_VERSE, CalligraphyArt.Script.NASKH, Ebru.Style.BULBUL_YUVASI, wide = true))
+        })
+        add(Entry(BIRTHDAY, "Doğum Günün ♡", hb, betul, 9) { ctx -> BirthdayArt.scene(ctx) })
+        add(Entry(SECRET, "Lâle · Hilâl · Allah", hb, betul, 66, secret = true) { ctx -> TulipArt.scene(ctx) })
 
         // Geometric
         add(geo("geo-khatam", "Hâtem", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, 230.0))
@@ -152,4 +171,10 @@ object Catalog {
     )
 
     fun byId(id: String) = entries.firstOrNull { it.id == id }
+
+    /** What the gallery shows: everything except secrets she hasn't found yet. */
+    fun visible(secretUnlocked: Boolean) = entries.filter { !it.secret || secretUnlocked }
+
+    const val BIRTHDAY = "hb-dogum-gunu"
+    const val SECRET = "hb-lale-hilal"
 }

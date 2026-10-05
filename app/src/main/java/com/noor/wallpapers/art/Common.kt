@@ -4,6 +4,7 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -26,6 +27,8 @@ class RenderContext(
     safeTop: Double = 0.0,
     safeWidth: Double = width.toDouble(),
     safeHeight: Double = height.toDouble(),
+    /** Her own choices on top of palette and seed: captions, texture, dimming, her own words. */
+    val options: DesignOptions = DesignOptions.DEFAULT,
 ) {
     val w = width.toDouble()
     val h = height.toDouble()
@@ -59,10 +62,60 @@ class RenderContext(
          * A tablet canvas of [width] x [height] whose focal content sits in a
          * centred square of side [safeSize] (the panel's short side).
          */
-        fun tablet(width: Int, height: Int, safeSize: Double, palette: Palette, seed: Int) = RenderContext(
+        fun tablet(
+            width: Int, height: Int, safeSize: Double, palette: Palette, seed: Int,
+            options: DesignOptions = DesignOptions.DEFAULT,
+        ) = RenderContext(
             width, height, palette, seed,
-            (width - safeSize) / 2, (height - safeSize) / 2, safeSize, safeSize,
+            (width - safeSize) / 2, (height - safeSize) / 2, safeSize, safeSize, options,
         )
+    }
+}
+
+/**
+ * Choices that apply to any design. [texture] scales the paper grain (0 = smooth
+ * vector), [dim] darkens the whole wallpaper (for legibility or a dark OLED
+ * screen), [captions] shows the Turkish reading and meaning under calligraphy,
+ * and [text] is her own words for the "Kendi Sözün" design.
+ */
+data class DesignOptions(
+    val captions: Boolean = true,
+    val texture: Float = 1f,
+    val dim: Float = 0f,
+    val text: String? = null,
+) {
+    val isDefault get() = this == DEFAULT
+
+    /** Compact and free of '|' so it fits inside a Selection: "c0;t50;d20;x<url-encoded text>". */
+    fun encode(): String = buildList {
+        if (!captions) add("c0")
+        if (texture != 1f) add("t${(texture * 100).roundToInt()}")
+        if (dim != 0f) add("d${(dim * 100).roundToInt()}")
+        text?.let { add("x" + java.net.URLEncoder.encode(it, "UTF-8")) }
+    }.joinToString(";")
+
+    companion object {
+        val DEFAULT = DesignOptions()
+        const val MAX_DIM = 0.6f
+        const val MAX_TEXT = 120
+
+        fun decode(s: String?): DesignOptions {
+            if (s.isNullOrBlank()) return DEFAULT
+            var o = DEFAULT
+            for (part in s.split(';')) {
+                if (part.isEmpty()) continue
+                val v = part.substring(1)
+                o = when (part[0]) {
+                    'c' -> o.copy(captions = v != "0")
+                    't' -> v.toIntOrNull()?.let { o.copy(texture = (it / 100f).coerceIn(0f, 1f)) } ?: o
+                    'd' -> v.toIntOrNull()?.let { o.copy(dim = (it / 100f).coerceIn(0f, MAX_DIM)) } ?: o
+                    'x' -> runCatching { java.net.URLDecoder.decode(v, "UTF-8") }.getOrNull()
+                        ?.take(MAX_TEXT)?.let { o.copy(text = it) } ?: o
+                    else -> o
+                }
+            }
+            return o
+        }
     }
 }
 

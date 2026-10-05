@@ -72,6 +72,63 @@ data class Palette(
             ),
         )
 
-        fun byId(id: String) = ALL.firstOrNull { it.id == id } ?: ALL[0]
+        /** Built-in palettes by id; ids starting "c-" are her own and carry their colours. */
+        fun byId(id: String) = ALL.firstOrNull { it.id == id } ?: PaletteMaker.parse(id) ?: ALL[0]
     }
+
+    val isCustom get() = id.startsWith(PaletteMaker.PREFIX)
+}
+
+/**
+ * Builds a full palette from the three colours she picks: a background, an
+ * ornament (the gold of the strapwork and calligraphy) and an accent. The
+ * other tones are derived so every design reads well. The colours live in the
+ * id ("c-123A44-E8B4A0-C97B84"), so a custom palette needs no storage to
+ * render, and thumbnails cache correctly per colour choice.
+ */
+object PaletteMaker {
+    const val PREFIX = "c-"
+    const val NAME = "Senin paletin"
+
+    fun make(background: Int, ornament: Int, accent: Int): Palette {
+        val bg = Colors.withAlpha(background, 1f)
+        val line = Colors.withAlpha(ornament, 1f)
+        val acc = Colors.withAlpha(accent, 1f)
+        // Light backgrounds still need a dark foot for the gradient and silhouettes.
+        val bottom = Colors.darken(bg, if (Colors.luminance(bg) > 0.45) 0.55f else 0.72f)
+        return Palette(
+            id = PREFIX + listOf(bg, line, acc).joinToString("-") { hex6(it) },
+            name = NAME,
+            bgTop = bg,
+            bgBottom = bottom,
+            line = line,
+            accentA = acc,
+            accentB = Colors.mix(acc, bg, 0.55f),
+            accentC = Colors.lighten(Colors.mix(acc, line, 0.35f), 0.25f),
+            glow = Colors.lighten(line, 0.55f),
+        )
+    }
+
+    fun parse(id: String): Palette? {
+        if (!id.startsWith(PREFIX)) return null
+        val parts = id.removePrefix(PREFIX).split('-')
+        if (parts.size != 3 || parts.any { it.length != 6 }) return null
+        val c = parts.map { it.toLongOrNull(16)?.toInt() ?: return null }
+        return make(c[0], c[1], c[2])
+    }
+
+    /** The three colours a palette was made from (or the nearest for a built-in one), for editing. */
+    fun seeds(p: Palette): Triple<Int, Int, Int> = Triple(p.bgTop, p.line, p.accentA)
+
+    /** A pleasing random combination: a deep background, a pale metallic ornament, and an accent across the wheel. */
+    fun random(rnd: kotlin.random.Random): Palette {
+        val h = rnd.nextDouble() * 360
+        val bg = Colors.hsv(h, 0.45 + rnd.nextDouble() * 0.35, 0.18 + rnd.nextDouble() * 0.17)
+        val ornamentHue = listOf(42.0, 30.0, 15.0, 50.0, h).random(rnd)
+        val ornament = Colors.hsv(ornamentHue, 0.25 + rnd.nextDouble() * 0.35, 0.86 + rnd.nextDouble() * 0.12)
+        val accent = Colors.hsv((h + listOf(150.0, 180.0, 210.0, 120.0, 30.0).random(rnd)) % 360, 0.45 + rnd.nextDouble() * 0.3, 0.5 + rnd.nextDouble() * 0.3)
+        return make(bg, ornament, accent)
+    }
+
+    private fun hex6(c: Int) = (c and 0xFFFFFF).toString(16).uppercase().padStart(6, '0')
 }

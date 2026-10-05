@@ -93,14 +93,16 @@ object LanternArt {
                 inkCentered = true,
             ),
         )
-        b.text(
-            TextItem(
-                p.phrase.meaning.uppercase(java.util.Locale.forLanguageTag("tr")), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
-                // The calligraphy's ink ends at ty + CALLIGRAPHY_HALF_HEIGHT; leave a clear gap below it.
-                (ty + (CALLIGRAPHY_HALF_HEIGHT + 55) * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
-                alpha = 0.9f, letterSpacing = 0.25f,
-            ),
-        )
+        if (ctx.options.captions) {
+            b.text(
+                TextItem(
+                    p.phrase.meaning.uppercase(java.util.Locale.forLanguageTag("tr")), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
+                    // The calligraphy's ink ends at ty + CALLIGRAPHY_HALF_HEIGHT; leave a clear gap below it.
+                    (ty + (CALLIGRAPHY_HALF_HEIGHT + 55) * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
+                    alpha = 0.9f, letterSpacing = 0.25f,
+                ),
+            )
+        }
         Textures.grainOverlay(b, ctx, 0.35f)
         Common.vignette(b, ctx, 0.4f)
         return b.build()

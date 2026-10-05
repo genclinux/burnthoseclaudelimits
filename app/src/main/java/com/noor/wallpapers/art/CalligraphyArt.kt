@@ -59,6 +59,11 @@ object Phrases {
         note = "Betül ile aynı ب-ت-ل kökünden",
     )
     val NUR = Phrase("nur", "نُور", "نور", "Nur", "YOLUN NUR OLSUN, HANİFE BETÜL")
+    // The verse of light, the "noor" in HBSnoor.
+    val NUR_VERSE = Phrase(
+        "nur-ayeti", "ٱللَّهُ نُورُ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ", "الله نور السماوات والأرض",
+        "Allâhu nûrus-semâvâti vel-ard", "Allah göklerin ve yerin nurudur · Nûr 24:35",
+    )
     val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramazan-ı Kerîm", "HAYIRLI RAMAZANLAR")
     val EID = Phrase("eid", "عِيدٌ مُبَارَكٌ", "عيد مبارك", "Îd Mübârek", "BAYRAMINIZ MÜBAREK OLSUN")
 }
@@ -112,7 +117,7 @@ object CalligraphyArt {
             ),
         )
 
-        if (p.showMeaning) {
+        if (p.showMeaning && ctx.options.captions) {
             val y = cy + (if (p.medallion) r else hh + 130 * ctx.u) + 150 * ctx.u
             b.text(
                 TextItem(

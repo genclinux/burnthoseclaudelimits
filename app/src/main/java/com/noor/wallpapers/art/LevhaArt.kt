@@ -26,7 +26,19 @@ object LevhaArt {
     private const val SEPIA = 0xFF5A4630.toInt()
     private const val SEAL_RED = 0xFFA3272A.toInt()
 
-    fun scene(ctx: RenderContext, p: Params): Scene {
+    /** Geometry and inks of the mounted sheet, for whatever is written on it. */
+    class Sheet(
+        val innerL: Double, val innerT: Double, val innerW: Double, val innerH: Double,
+        val gold: Int, val ink: Int, val noteColor: Int, val noteWidth: Double, val night: Boolean,
+    )
+
+    fun scene(ctx: RenderContext, p: Params): Scene = panel(ctx, p.ebru, p.wide) { s -> writing(this, ctx, p, s) }
+
+    /**
+     * The levha without its writing: ebru margin, aged ahar paper, gold cetvel,
+     * köşebent corners and the ح ب seal. [content] writes on the sheet.
+     */
+    fun panel(ctx: RenderContext, ebru: Ebru.Style, wide: Boolean, content: SceneBuilder.(Sheet) -> Unit): Scene {
         val b = SceneBuilder(ctx.width, ctx.height)
         val pal = ctx.palette
         val u = ctx.u
@@ -35,12 +47,12 @@ object LevhaArt {
         // The ebru margin: the palette's pigments, softened toward the paper as margin papers usually are.
         val (pigments, water) = Ebru.pigments(pal)
         val soft = pigments.map { Colors.mix(it, water, 0.42f) }
-        b.raster(Ebru.sheet(p.ebru, soft, water, ctx.seed + 400, 0.0, 0.0, ctx.w, ctx.h, maxPixels = 260_000))
+        b.raster(Ebru.sheet(ebru, soft, water, ctx.seed + 400, 0.0, 0.0, ctx.w, ctx.h, maxPixels = 260_000))
         Textures.grainOverlay(b, ctx, 0.5f)
 
         // Panel geometry inside the safe area.
         val pw = minOf(ctx.safeW, ctx.safeH) * 0.86
-        val ph = if (p.wide) pw * 0.66 else minOf(pw * 1.18, ctx.safeH * 0.86)
+        val ph = if (wide) pw * 0.66 else minOf(pw * 1.18, ctx.safeH * 0.86)
         val left = ctx.cx - pw / 2; val top = ctx.cy - ph / 2
         val right = left + pw; val bottom = top + ph
 
@@ -84,47 +96,15 @@ object LevhaArt {
             kosebent(b, ctx, c, cornerR, start, gold, pal.accentA, pal.accentB, night, ctx.seed + 20 + i)
         }
 
-        // The calligraphy.
+        // The writing area, and the seal's corner kept clear for small notes at the foot.
         val innerL = left + 70 * u; val innerR = right - 70 * u
         val innerT = top + 70 * u; val innerB = bottom - 70 * u
         val innerW = innerR - innerL; val innerH = innerB - innerT
-        val (font, text) = when (p.script) {
-            CalligraphyArt.Script.NASKH -> FontId.NASKH_BOLD to p.phrase.arabic
-            CalligraphyArt.Script.RUQAA -> FontId.RUQAA to p.phrase.bare
-            CalligraphyArt.Script.KUFI -> FontId.KUFI to p.phrase.bare
-        }
-        val textCy = innerT + innerH * 0.44
-        val ink = if (night) gold else INK
-        b.text(
-            TextItem(
-                text, font, (innerH * 0.6).toFloat(), ctx.cx.toFloat(), textCy.toFloat(),
-                LinearFill(
-                    0f, (textCy - innerH * 0.3).toFloat(), 0f, (textCy + innerH * 0.3).toFloat(),
-                    intArrayOf(Colors.lighten(ink, if (night) 0.25f else 0.08f), ink, Colors.darken(ink, 0.1f)),
-                ),
-                maxWidth = (innerW * 0.84).toFloat(),
-                maxHeight = (innerH * 0.56).toFloat(),
-                inkCentered = true,
-            ),
-        )
-
-        // Reading and meaning, small, in sepia at the foot of the sheet, kept clear of the seal.
         val sealX = right - 46 * u - cornerR - 34 * u
         val sealY = bottom - 46 * u - 34 * u
         val noteWidth = minOf(innerW * 0.8, 2 * (sealX - 46 * u - ctx.cx))
         val noteColor = if (night) Colors.darken(gold, 0.15f) else SEPIA
-        b.text(
-            TextItem(
-                p.phrase.transliteration, FontId.LATIN, (30 * u).toFloat(), ctx.cx.toFloat(), (innerT + innerH * 0.83).toFloat(),
-                SolidFill(noteColor), maxWidth = noteWidth.toFloat(), alpha = 0.9f, letterSpacing = 0.03f,
-            ),
-        )
-        b.text(
-            TextItem(
-                p.phrase.meaning, FontId.LATIN, (24 * u).toFloat(), ctx.cx.toFloat(), (innerT + innerH * 0.92).toFloat(),
-                SolidFill(noteColor), maxWidth = noteWidth.toFloat(), alpha = 0.75f,
-            ),
-        )
+        b.content(Sheet(innerL, innerT, innerW, innerH, gold, if (night) gold else INK, noteColor, noteWidth, night))
 
         // Seal (mühür) with her initials, stamped slightly crooked near the corner.
         seal(b, ctx, sealX, sealY, 24 * u, ctx.seed + 31)
@@ -133,6 +113,45 @@ object LevhaArt {
         Textures.grainOverlay(b, ctx, if (night) 0.35f else 0.7f, clip = sheet)
         Common.vignette(b, ctx, 0.35f)
         return b.build()
+    }
+
+    /** The calligraphy, with its reading and meaning small in sepia at the foot. */
+    private fun writing(b: SceneBuilder, ctx: RenderContext, p: Params, s: Sheet) {
+        val u = ctx.u
+        val (font, text) = when (p.script) {
+            CalligraphyArt.Script.NASKH -> FontId.NASKH_BOLD to p.phrase.arabic
+            CalligraphyArt.Script.RUQAA -> FontId.RUQAA to p.phrase.bare
+            CalligraphyArt.Script.KUFI -> FontId.KUFI to p.phrase.bare
+        }
+        // Without captions the calligraphy takes the whole sheet.
+        val captions = ctx.options.captions
+        val textCy = s.innerT + s.innerH * (if (captions) 0.44 else 0.5)
+        val ink = s.ink
+        b.text(
+            TextItem(
+                text, font, (s.innerH * 0.6).toFloat(), ctx.cx.toFloat(), textCy.toFloat(),
+                LinearFill(
+                    0f, (textCy - s.innerH * 0.3).toFloat(), 0f, (textCy + s.innerH * 0.3).toFloat(),
+                    intArrayOf(Colors.lighten(ink, if (s.night) 0.25f else 0.08f), ink, Colors.darken(ink, 0.1f)),
+                ),
+                maxWidth = (s.innerW * 0.84).toFloat(),
+                maxHeight = (s.innerH * (if (captions) 0.56 else 0.66)).toFloat(),
+                inkCentered = true,
+            ),
+        )
+        if (!captions) return
+        b.text(
+            TextItem(
+                p.phrase.transliteration, FontId.LATIN, (30 * u).toFloat(), ctx.cx.toFloat(), (s.innerT + s.innerH * 0.83).toFloat(),
+                SolidFill(s.noteColor), maxWidth = s.noteWidth.toFloat(), alpha = 0.9f, letterSpacing = 0.03f,
+            ),
+        )
+        b.text(
+            TextItem(
+                p.phrase.meaning, FontId.LATIN, (24 * u).toFloat(), ctx.cx.toFloat(), (s.innerT + s.innerH * 0.92).toFloat(),
+                SolidFill(s.noteColor), maxWidth = s.noteWidth.toFloat(), alpha = 0.75f,
+            ),
+        )
     }
 
     /** Age: soft foxing and tide marks on the paper, multiplied in. */

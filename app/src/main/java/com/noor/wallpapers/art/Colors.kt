@@ -30,6 +30,23 @@ object Colors {
     /** Perceived luminance in 0..1. */
     fun luminance(c: Int) = (0.2126 * red(c) + 0.7152 * green(c) + 0.0722 * blue(c)) / 255.0
 
+    /** Hue 0..360, saturation and value 0..1. */
+    fun hsv(h: Double, s: Double, v: Double): Int {
+        val hh = ((h % 360) + 360) % 360 / 60
+        val c = v * s
+        val x = c * (1 - kotlin.math.abs(hh % 2 - 1))
+        val (r, g, b) = when (hh.toInt()) {
+            0 -> Triple(c, x, 0.0)
+            1 -> Triple(x, c, 0.0)
+            2 -> Triple(0.0, c, x)
+            3 -> Triple(0.0, x, c)
+            4 -> Triple(x, 0.0, c)
+            else -> Triple(c, 0.0, x)
+        }
+        val m = v - c
+        return argb(255, ((r + m) * 255).roundToInt(), ((g + m) * 255).roundToInt(), ((b + m) * 255).roundToInt())
+    }
+
     const val TRANSPARENT = 0
     const val BLACK = 0xFF000000.toInt()
     const val WHITE = 0xFFFFFFFF.toInt()

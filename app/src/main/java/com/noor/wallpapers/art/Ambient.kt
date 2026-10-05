@@ -11,7 +11,14 @@ import kotlin.random.Random
  * Kept to a handful of primitives so it costs little per frame.
  */
 object Ambient {
-    fun overlay(ctx: RenderContext, timeSeconds: Double): List<Item> {
+    /** A touch on the live wallpaper at ([x], [y]), [time] seconds into the animation. */
+    data class Tap(val x: Double, val y: Double, val time: Double)
+
+    /**
+     * The moving layer at [timeSeconds]. Each [taps] entry sends a shooting star
+     * from where she touched; on her [birthday] rose petals drift down.
+     */
+    fun overlay(ctx: RenderContext, timeSeconds: Double, taps: List<Tap> = emptyList(), birthday: Boolean = false): List<Item> {
         val b = SceneBuilder(ctx.width, ctx.height)
         val pal = ctx.palette
         val rnd = ctx.random(97)
@@ -43,7 +50,39 @@ object Ambient {
             }
         }
         shootingStar(b, ctx, timeSeconds)
+        for (tap in taps) tapStar(b, ctx, tap, timeSeconds)
+        if (birthday) petals(b, ctx, timeSeconds)
         return b.items
+    }
+
+    const val TAP_DURATION = 1.3
+
+    /** Easter egg: touch the wallpaper and a star shoots from your fingertip. */
+    private fun tapStar(b: SceneBuilder, ctx: RenderContext, tap: Tap, t: Double) {
+        val local = t - tap.time
+        if (local < 0 || local > TAP_DURATION) return
+        val p = local / TAP_DURATION
+        val rnd = Random((tap.time * 1000).toLong())
+        val dir = Vec(0.78, -0.62).let { if (rnd.nextBoolean()) Vec(-it.x, it.y) else it }
+        streak(b, ctx, Vec(tap.x, tap.y), dir, p, ctx.safeW * 0.45)
+    }
+
+    /** Her birthday: petals falling slowly, turning as they go. */
+    private fun petals(b: SceneBuilder, ctx: RenderContext, t: Double) {
+        val rnd = ctx.random(211)
+        val span = ctx.h + 120 * ctx.u
+        repeat(16) {
+            val x0 = rnd.nextDouble() * ctx.w
+            val fall = span / (22 + rnd.nextDouble() * 16)
+            val offset = rnd.nextDouble() * span
+            val sway = (30 + rnd.nextDouble() * 50) * ctx.u
+            val phase = rnd.nextDouble() * 2 * PI
+            val spin = 0.3 + rnd.nextDouble() * 0.6
+            val size = (14 + rnd.nextDouble() * 14) * ctx.u
+            val y = (t * fall + offset) % span - 60 * ctx.u
+            val x = x0 + sin(t * 0.6 + phase) * sway
+            Petals.draw(b, ctx.palette, x, y, size, t * spin + phase, 0.8f)
+        }
     }
 
     /** Easter egg for Hanife Betül: a shooting star every 37 seconds. Make a wish. */
@@ -57,7 +96,11 @@ object Ambient {
         val rnd = Random(ctx.seed * 31 + cycle)
         val start = Vec(ctx.x(0.15 + rnd.nextDouble() * 0.6), ctx.y(0.04 + rnd.nextDouble() * 0.2))
         val dir = Vec(0.82, 0.57).let { if (rnd.nextBoolean()) Vec(-it.x, it.y) else it }
-        val travel = ctx.safeW * 0.55
+        streak(b, ctx, start, dir, p, ctx.safeW * 0.55)
+    }
+
+    /** A shooting star [p] (0..1) of the way along its path from [start] in direction [dir]. */
+    private fun streak(b: SceneBuilder, ctx: RenderContext, start: Vec, dir: Vec, p: Double, travel: Double) {
         val head = start + dir * (travel * p)
         val tail = head - dir * (travel * 0.35 * (1 - p * 0.5))
         val fade = sin(PI * p).toFloat()

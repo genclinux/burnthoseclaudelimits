@@ -8,12 +8,24 @@ plugins {
 val appSrc = "../../app/src"
 
 sourceSets {
-    main { kotlin.srcDirs("src/main/kotlin", "$appSrc/main/java/com/noor/wallpapers/art") }
-    test { kotlin.srcDirs("$appSrc/test/java/com/noor/wallpapers/art") }
+    main {
+        kotlin.srcDirs(
+            "src/main/kotlin",
+            "$appSrc/main/java/com/noor/wallpapers/art",
+            "$appSrc/main/java/com/noor/wallpapers/prayer",
+        )
+    }
+    test {
+        kotlin.srcDirs(
+            "$appSrc/test/java/com/noor/wallpapers/art",
+            "$appSrc/test/java/com/noor/wallpapers/prayer",
+        )
+    }
 }
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    testImplementation("com.ibm.icu:icu4j:76.1")
 }
 
 application {

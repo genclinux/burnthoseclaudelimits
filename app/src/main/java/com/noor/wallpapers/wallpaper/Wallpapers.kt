@@ -12,28 +12,34 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.view.WindowManager
 import com.noor.wallpapers.art.Catalog
+import com.noor.wallpapers.art.DesignOptions
 import com.noor.wallpapers.art.Entry
 import com.noor.wallpapers.art.Palette
 import com.noor.wallpapers.art.RenderContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** A catalog entry rendered in a particular palette and seed. */
-data class Selection(val entryId: String, val paletteId: String, val seed: Int) {
+/** A catalog entry rendered in a particular palette and seed, with her own options. */
+data class Selection(
+    val entryId: String,
+    val paletteId: String,
+    val seed: Int,
+    val options: DesignOptions = DesignOptions.DEFAULT,
+) {
     val entry: Entry get() = Catalog.byId(entryId) ?: Catalog.entries.first()
     val palette: Palette get() = Palette.byId(paletteId)
 
-    fun encode() = "$entryId|$paletteId|$seed"
+    fun encode() = "$entryId|$paletteId|$seed" + if (options.isDefault) "" else "|" + options.encode()
 
     companion object {
         fun of(entry: Entry) = Selection(entry.id, entry.defaultPalette.id, entry.defaultSeed)
 
         fun decode(s: String?): Selection? {
             val parts = s?.split('|') ?: return null
-            if (parts.size != 3) return null
+            if (parts.size !in 3..4) return null
             val seed = parts[2].toIntOrNull() ?: return null
             if (Catalog.byId(parts[0]) == null) return null
-            return Selection(parts[0], parts[1], seed)
+            return Selection(parts[0], parts[1], seed, DesignOptions.decode(parts.getOrNull(3)))
         }
     }
 }
@@ -88,8 +94,8 @@ object Wallpapers {
      * focal content goes in the centred square, exactly as in the real wallpaper.
      */
     fun viewportContext(context: Context, sel: Selection, width: Int, height: Int): RenderContext =
-        if (isTablet(context)) RenderContext.tablet(width, height, minOf(width, height).toDouble(), sel.palette, sel.seed)
-        else RenderContext(width, height, sel.palette, sel.seed)
+        if (isTablet(context)) RenderContext.tablet(width, height, minOf(width, height).toDouble(), sel.palette, sel.seed, sel.options)
+        else RenderContext(width, height, sel.palette, sel.seed, options = sel.options)
 
     /**
      * Context for the bitmap handed to WallpaperManager. Phones get the exact
@@ -99,8 +105,8 @@ object Wallpapers {
      */
     fun wallpaperContext(context: Context, sel: Selection): RenderContext {
         val (short, long) = screenSize(context)
-        return if (isTablet(context)) RenderContext.tablet(long, long, short.toDouble(), sel.palette, sel.seed)
-        else RenderContext(short, long, sel.palette, sel.seed)
+        return if (isTablet(context)) RenderContext.tablet(long, long, short.toDouble(), sel.palette, sel.seed, sel.options)
+        else RenderContext(short, long, sel.palette, sel.seed, options = sel.options)
     }
 
     /** Renders on the calling thread. */

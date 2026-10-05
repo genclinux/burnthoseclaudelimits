@@ -50,8 +50,11 @@ object Textures {
         out
     }
 
-    /** Paper grain over the whole canvas, multiplied in. [strength] 0..1. */
-    fun grainOverlay(b: SceneBuilder, ctx: RenderContext, strength: Float = 0.6f, clip: Path? = null) {
+    /** Paper grain over the whole canvas, multiplied in. [strength0] 0..1, scaled by her texture setting. */
+    fun grainOverlay(b: SceneBuilder, ctx: RenderContext, strength0: Float = 0.6f, clip: Path? = null) {
+        // Her texture setting scales every design's grain; at zero it is skipped entirely.
+        val strength = strength0 * ctx.options.texture
+        if (strength <= 0.01f) return
         val px = paperGrain()
         val item = RasterItem(
             TILE, TILE, px, 0f, 0f, ctx.width.toFloat(), ctx.height.toFloat(),

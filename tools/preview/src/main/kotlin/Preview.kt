@@ -2,6 +2,16 @@ package com.noor.wallpapers.preview
 
 import com.noor.wallpapers.art.Catalog
 import com.noor.wallpapers.art.RenderContext
+import com.noor.wallpapers.art.Scene
+import com.noor.wallpapers.prayer.OverlayInfo
+import com.noor.wallpapers.prayer.OverlayPosition
+import com.noor.wallpapers.prayer.OverlayStyle
+import com.noor.wallpapers.prayer.PrayerCalculator
+import com.noor.wallpapers.prayer.PrayerOverlay
+import com.noor.wallpapers.prayer.PrayerSchedule
+import com.noor.wallpapers.prayer.Provinces
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.awt.Color
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
@@ -28,6 +38,10 @@ fun main(args: Array<String>) {
         if (d == "all" || d.isBlank()) Device.entries else listOf(Device.valueOf(d.uppercase()))
     }
     val renderer = Java2DRenderer(File("../../app/src/main/assets/fonts"))
+    if (filter == "overlay") {
+        renderOverlays(renderer, File(root, "overlay").apply { mkdirs() }, scale)
+        return
+    }
     for (device in devices) {
         val out = if (device == Device.PHONE) root else File(root, device.name.lowercase())
         render(renderer, device, out.apply { mkdirs() }, scale, filter)
@@ -75,4 +89,35 @@ private fun render(renderer: Java2DRenderer, device: Device, out: File, scale: D
     g.dispose()
     ImageIO.write(sheet, "png", File(out, "_contact_sheet.png"))
     println("Wrote ${images.size} previews to ${out.absolutePath}")
+}
+
+/** The live wallpaper's prayer panel over a few designs, both styles, phone and tablet. */
+private fun renderOverlays(renderer: Java2DRenderer, out: File, scale: Double) {
+    val zone = ZoneId.of(Provinces.TURKEY_ZONE)
+    val place = Provinces.location(Provinces.byName("İstanbul")!!)
+    val calc = PrayerCalculator(place.latitude!!, place.longitude!!, zone)
+    val schedule = PrayerSchedule(place, emptyList(), calc::day, zone)
+    val now = LocalDateTime.of(2026, 10, 5, 14, 20).atZone(zone).toInstant()
+    val info = OverlayInfo.of(schedule, now)!!
+    val cases = listOf(
+        Triple("hb-stars", OverlayStyle.COMPACT, OverlayPosition.TOP),
+        Triple("night-istanbul", OverlayStyle.DETAILED, OverlayPosition.BOTTOM),
+        Triple("geo-fez", OverlayStyle.DETAILED, OverlayPosition.TOP),
+        Triple("levha-bismillah", OverlayStyle.COMPACT, OverlayPosition.BOTTOM),
+        Triple("cal-allah", OverlayStyle.DETAILED, OverlayPosition.MIDDLE),
+    )
+    for (device in listOf(Device.PHONE, Device.TABLET_LANDSCAPE)) {
+        val w = (device.width * scale).roundToInt()
+        val h = (device.height * scale).roundToInt()
+        for ((id, style, position) in cases) {
+            val e = Catalog.byId(id)!!
+            val ctx = if (device.tablet) RenderContext.tablet(w, h, minOf(w, h).toDouble(), e.defaultPalette, e.defaultSeed)
+            else RenderContext(w, h, e.defaultPalette, e.defaultSeed)
+            val base = e.render(ctx)
+            val scene = Scene(w, h, base.items + PrayerOverlay.items(ctx, info, style, position))
+            ImageIO.write(renderer.render(scene), "png", File(out, "${device.name.lowercase()}-$id-${style.name.lowercase()}.png"))
+        }
+    }
+    println("Next: ${info.next} ${info.nextTime} in ${info.countdown}; today ${info.today}")
+    println("Wrote overlay previews to ${out.absolutePath}")
 }

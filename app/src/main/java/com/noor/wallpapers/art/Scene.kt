@@ -61,6 +61,18 @@ class Path {
         moveTo(left, top); lineTo(right, top); lineTo(right, bottom); lineTo(left, bottom); close()
     }
 
+    fun roundRect(left: Number, top: Number, right: Number, bottom: Number, radius: Number) = apply {
+        val l = left.toDouble(); val t = top.toDouble(); val r = right.toDouble(); val b = bottom.toDouble()
+        val rr = minOf(radius.toDouble(), (r - l) / 2, (b - t) / 2)
+        val k = rr * (1 - 0.5522847498)
+        moveTo(l + rr, t); lineTo(r - rr, t)
+        cubicTo(r - k, t, r, t + k, r, t + rr); lineTo(r, b - rr)
+        cubicTo(r, b - k, r - k, b, r - rr, b); lineTo(l + rr, b)
+        cubicTo(l + k, b, l, b - k, l, b - rr); lineTo(l, t + rr)
+        cubicTo(l, t + k, l + k, t, l + rr, t)
+        close()
+    }
+
     fun circle(cx: Number, cy: Number, r: Number) = apply {
         val x = cx.toDouble(); val y = cy.toDouble(); val rr = r.toDouble()
         val k = 0.5522847498 * rr

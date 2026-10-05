@@ -1,6 +1,14 @@
 package com.noor.wallpapers.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.noor.wallpapers.service.AppSettings
+import com.noor.wallpapers.service.PrayerRepository
+import java.time.LocalDateTime
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +65,7 @@ import com.noor.wallpapers.art.Category
 import com.noor.wallpapers.wallpaper.Selection
 
 /** null category = all; [favoritesOnly] narrows further. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun GalleryScreen(
     items: List<Pair<Selection, String>>,
@@ -69,10 +77,17 @@ fun GalleryScreen(
     onToggleFavorite: (String) -> Unit,
     onOpen: (Selection) -> Unit,
     onDedication: () -> Unit,
+    onBetulTheme: () -> Unit,
 ) {
+    val context = LocalContext.current
     val scroll = TopAppBarDefaults.pinnedScrollBehavior()
-    val greeting = remember { HanifeBetul.greeting() }
+    val greeting = remember {
+        HanifeBetul.greeting(LocalDateTime.now(), AppSettings(context).birthday, PrayerRepository.hijri(context))
+    }
     var titleTaps by remember { mutableIntStateOf(0) }
+    if (favoritesOnly && items.isEmpty()) {
+        LaunchedEffect(Unit) { HanifeBetul.find(context, HanifeBetul.Surprise.EMPTY_FAVORITES) }
+    }
     Scaffold(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
@@ -85,6 +100,7 @@ fun GalleryScreen(
                             titleTaps++
                             if (titleTaps >= 5) {
                                 titleTaps = 0
+                                HanifeBetul.find(context, HanifeBetul.Surprise.TITLE_TAPS)
                                 onDedication()
                             }
                         },
@@ -98,7 +114,14 @@ fun GalleryScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onDedication) {
+                    // ✦ opens her page; a long press paints the app in her colours.
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .combinedClickable(onClick = onDedication, onLongClick = onBetulTheme),
+                    ) {
                         Text("✦", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = { onFavoritesOnly(!favoritesOnly) }) {

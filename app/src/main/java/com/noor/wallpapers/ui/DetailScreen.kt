@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Lock
@@ -70,6 +71,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.noor.wallpapers.art.Palette
+import com.noor.wallpapers.service.AppSettings
+import com.noor.wallpapers.service.Background
+import com.noor.wallpapers.service.PrayerWidget
 import com.noor.wallpapers.wallpaper.Selection
 import com.noor.wallpapers.wallpaper.Target
 import com.noor.wallpapers.wallpaper.Wallpapers
@@ -99,26 +103,42 @@ fun DetailScreen(
     val thumb by rememberThumbnail(sel)
     val viewport = rememberViewport()
     var shuffles by remember { mutableIntStateOf(0) }
+    val settings = remember { AppSettings(context) }
+    var customPalettes by remember { mutableStateOf(settings.customPalettes) }
+    var editingPalette by remember { mutableStateOf<String?>(null) } // palette id to return to if she cancels
+    var options by remember { mutableStateOf(false) }
+
+    /** Shows [text], then a "found a surprise" note if this was one. */
+    fun say(text: String, surprise: HanifeBetul.Surprise? = null) {
+        val found = surprise?.let { HanifeBetul.find(context, it) }
+        scope.launch {
+            snackbar.showSnackbar(text)
+            if (found != null) snackbar.showSnackbar(found)
+        }
+    }
 
     LaunchedEffect(sel, viewport) {
         rendering = true
         full = Wallpapers.renderViewport(context, sel, viewport.width, viewport.height)
         rendering = false
-        onChanged(sel)
+        // While she is still choosing colours, don't remember the half-made palette.
+        if (editingPalette == null) onChanged(sel)
     }
 
     /**
      * Renders the real wallpaper bitmap (on a tablet, a square that works in
      * both orientations, so not the on-screen preview) and hands it to [action].
      */
-    fun act(done: () -> String, action: suspend (Bitmap) -> Unit) {
+    fun act(done: () -> String, surprise: HanifeBetul.Surprise? = null, action: suspend (Bitmap) -> Unit) {
         // While a new palette/seed renders, the preview still shows the previous one.
         if (rendering || busy) return
         scope.launch {
             busy = true
             try {
                 action(Wallpapers.renderWallpaper(context, sel))
+                val found = surprise?.let { HanifeBetul.find(context, it) }
                 snackbar.showSnackbar(done())
+                if (found != null) snackbar.showSnackbar(found)
             } catch (e: Exception) {
                 snackbar.showSnackbar("Bir şeyler ters gitti: ${e.message ?: e.javaClass.simpleName}")
             } finally {
@@ -173,22 +193,26 @@ fun DetailScreen(
                     .navigationBarsPadding()
                     .padding(top = 48.dp, bottom = 16.dp),
             ) {
-                PaletteRow(sel.paletteId) { sel = sel.copy(paletteId = it.id) }
+                val palettes = remember(customPalettes, sel.paletteId) {
+                    val custom = (customPalettes + sel.paletteId).distinct().map(Palette::byId).filter { it.isCustom }
+                    custom + Palette.ALL
+                }
+                PaletteRow(palettes, sel.paletteId, onAdd = {
+                    editingPalette = sel.paletteId
+                }) { sel = sel.copy(paletteId = it.id) }
                 Spacer(Modifier.height(16.dp))
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 ) {
                     RoundAction(Icons.Filled.Refresh, "Karıştır") {
                         sel = sel.copy(seed = Random.nextInt(1, 100_000))
                         // Easter egg: every seventh shuffle earns a compliment.
-                        if (++shuffles % 7 == 0) scope.launch { snackbar.showSnackbar(HanifeBetul.SHUFFLE_MESSAGE) }
+                        if (++shuffles % 7 == 0) say(HanifeBetul.shuffleMessages[(shuffles / 7 - 1) % HanifeBetul.shuffleMessages.size], HanifeBetul.Surprise.SHUFFLE)
                     }
                     RoundAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Favori", onToggleFavorite)
-                    RoundAction(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet") {
-                        act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
-                    }
+                    RoundAction(Icons.Filled.Edit, "Ayarla") { options = true }
                     Button(
                         onClick = { sheet = true },
                         enabled = full != null && !busy && !rendering,
@@ -202,6 +226,37 @@ fun DetailScreen(
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 140.dp))
     }
 
+    editingPalette?.let { before ->
+        PaletteEditor(
+            initial = sel.palette,
+            onPreview = { sel = sel.copy(paletteId = it.id) },
+            onSave = { p ->
+                customPalettes = (listOf(p.id) + customPalettes).distinct().take(12)
+                settings.customPalettes = customPalettes
+                editingPalette = null
+                sel = sel.copy(paletteId = p.id)
+                onChanged(sel)
+                say("Paletin kaydedildi; her tasarımda kullanabilirsin 🎨", HanifeBetul.Surprise.PALETTE)
+            },
+            onDismiss = {
+                editingPalette = null
+                sel = sel.copy(paletteId = before)
+            },
+        )
+    }
+
+    if (options) {
+        DesignOptionsSheet(
+            options = sel.options,
+            editableText = sel.entry.editableText,
+            onChange = { o ->
+                sel = sel.copy(options = o)
+                if (sel.entry.editableText && o.text != null) HanifeBetul.find(context, HanifeBetul.Surprise.OWN_WORDS)?.let { say(it) }
+            },
+            onDismiss = { options = false },
+        )
+    }
+
     if (sheet) {
         ModalBottomSheet(onDismissRequest = { sheet = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
             Column(Modifier.padding(bottom = 24.dp)) {
@@ -210,22 +265,36 @@ fun DetailScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
+                val applied = HanifeBetul.Surprise.APPLIED
                 SheetOption(Icons.Filled.Home, "Ana ekran") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.HOME) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.HOME) }
                 }
                 SheetOption(Icons.Filled.Lock, "Kilit ekranı") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.LOCK) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.LOCK) }
                 }
                 SheetOption(Icons.Filled.Star, "Ana ekran ve kilit ekranı") {
-                    sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.BOTH) }
+                    sheet = false; act({ HanifeBetul.appliedMessages.random() }, applied) { Wallpapers.apply(context, it, Target.BOTH) }
                 }
-                SheetOption(Icons.Filled.PlayArrow, "Canlı duvar kağıdı (parıldayan yıldızlar)") {
+                SheetOption(Icons.Filled.PlayArrow, "Canlı duvar kağıdı (yıldızlar ve vakitler)") {
                     sheet = false
                     try {
+                        // She chose this design, so the live wallpaper shows it rather than following the day.
+                        settings.liveFollowsPrayer = false
                         context.startActivity(Wallpapers.liveWallpaperIntent(context, sel))
+                        HanifeBetul.find(context, HanifeBetul.Surprise.LIVE)
                     } catch (_: ActivityNotFoundException) {
                         scope.launch { snackbar.showSnackbar("Bu cihaz canlı duvar kağıdını desteklemiyor") }
                     }
+                }
+                SheetOption(NoorIcons.Vakit, "Vakit widget'ının arka planı") {
+                    sheet = false
+                    settings.widgetSelection = sel.encode()
+                    Background.executor.execute { PrayerWidget.updateAll(context.applicationContext) }
+                    say("Namaz vakitleri widget'ı artık bu tasarımla ✨")
+                }
+                SheetOption(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet (PNG)") {
+                    sheet = false
+                    act({ "Resimler/HBSnoor klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "hbsnoor-${sel.entryId}-${sel.seed}") }
                 }
             }
         }
@@ -233,31 +302,13 @@ fun DetailScreen(
 }
 
 @Composable
-private fun PaletteRow(selected: String, onSelect: (Palette) -> Unit) {
+private fun PaletteRow(palettes: List<Palette>, selected: String, onAdd: () -> Unit, onSelect: (Palette) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(horizontal = 20.dp),
     ) {
-        items(Palette.ALL, key = { it.id }) { p ->
-            val isSel = p.id == selected
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(
-                        BorderStroke(if (isSel) 3.dp else 1.dp, if (isSel) Color(p.line) else Color.White.copy(alpha = 0.3f)),
-                        CircleShape,
-                    )
-                    .padding(4.dp)
-                    .background(
-                        Brush.linearGradient(listOf(Color(p.bgTop), Color(p.accentA), Color(p.bgBottom))),
-                        CircleShape,
-                    )
-                    .clickable { onSelect(p) },
-            ) {
-                Box(Modifier.size(10.dp).background(Color(p.line), CircleShape))
-            }
-        }
+        item(key = "+") { AddPaletteDot(onAdd) }
+        items(palettes, key = { it.id }) { p -> PaletteDot(p, p.id == selected) { onSelect(p) } }
     }
 }
 
@@ -265,7 +316,7 @@ private fun PaletteRow(selected: String, onSelect: (Palette) -> Unit) {
 private fun RoundAction(icon: ImageVector, label: String, onClick: () -> Unit) {
     FilledTonalIconButton(
         onClick = onClick,
-        modifier = Modifier.size(52.dp),
+        modifier = Modifier.size(48.dp),
         colors = IconButtonDefaults.filledTonalIconButtonColors(
             containerColor = Color.White.copy(alpha = 0.14f),
             contentColor = Color.White,
