@@ -78,7 +78,7 @@ object LanternArt {
         )
         b.text(
             TextItem(
-                p.phrase.meaning.uppercase(), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
+                p.phrase.meaning.uppercase(java.util.Locale.forLanguageTag("tr")), FontId.LATIN, (38 * ctx.u).toFloat(), ctx.cx.toFloat(),
                 (ty + 150 * ctx.u).toFloat(), SolidFill(Colors.lighten(pal.line, 0.3f)),
                 alpha = 0.9f, letterSpacing = 0.25f,
             ),

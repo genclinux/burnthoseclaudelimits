@@ -89,7 +89,7 @@ fun GalleryScreen(
                             }
                         },
                     ) {
-                        Text("Noor · نور", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                        Text("Nur · نور", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                         Text(
                             greeting,
                             style = MaterialTheme.typography.labelMedium,
@@ -104,7 +104,7 @@ fun GalleryScreen(
                     IconButton(onClick = { onFavoritesOnly(!favoritesOnly) }) {
                         Icon(
                             if (favoritesOnly) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = if (favoritesOnly) "Show all" else "Show favourites",
+                            contentDescription = if (favoritesOnly) "Tümünü göster" else "Favorileri göster",
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -158,7 +158,7 @@ fun GalleryScreen(
 @Composable
 private fun CategoryRow(selected: Category?, onSelect: (Category?) -> Unit) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 4.dp)) {
-        item { Chip("All", null, selected == null) { onSelect(null) } }
+        item { Chip("Tümü", null, selected == null) { onSelect(null) } }
         items(Category.entries) { c -> Chip(c.title, c.arabic, selected == c) { onSelect(c) } }
     }
 }
@@ -231,7 +231,7 @@ private fun WallpaperCard(
             IconButton(onClick = onToggleFavorite, modifier = Modifier.align(Alignment.CenterEnd)) {
                 Icon(
                     if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = if (favorite) "Remove from favourites" else "Add to favourites",
+                    contentDescription = if (favorite) "Favorilerden çıkar" else "Favorilere ekle",
                     tint = if (favorite) MaterialTheme.colorScheme.primary else Color.White,
                 )
             }

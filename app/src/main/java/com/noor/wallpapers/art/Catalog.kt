@@ -2,11 +2,11 @@ package com.noor.wallpapers.art
 
 enum class Category(val title: String, val arabic: String) {
     HANIFE_BETUL("Hanife Betül ♡", "حنيفة بتول"),
-    GEOMETRIC("Geometric", "هندسة"),
-    CALLIGRAPHY("Calligraphy", "خط"),
-    NIGHT("Night Mosques", "ليل"),
-    RAMADAN("Ramadan & Eid", "رمضان"),
-    MIHRAB("Mihrab", "محراب"),
+    GEOMETRIC("Geometrik", "هندسة"),
+    CALLIGRAPHY("Hat", "خط"),
+    NIGHT("Gece Camileri", "ليل"),
+    RAMADAN("Ramazan ve Bayram", "رمضان"),
+    MIHRAB("Mihrap", "محراب"),
 }
 
 /**
@@ -65,16 +65,16 @@ object Catalog {
         })
 
         // Geometric
-        add(geo("geo-khatam", "Khatam", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, 230.0))
-        add(geo("geo-rub-el-hizb", "Rub el Hizb", "lapis", Tiling.OCTAGON_SQUARE, PatternStyle.STRAPWORK, 120.0))
-        add(geo("geo-fez", "Fez Zellige", "iznik", Tiling.OCTAGON_SQUARE, PatternStyle.ZELLIGE, 105.0, 72.0))
-        add(geo("geo-shamsa", "Shamsa", "amethyst", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, 95.0))
-        add(geo("geo-rosette", "Twelvefold Rosette", "alhambra", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.STRAPWORK, 82.0))
-        add(geo("geo-hexagram", "Hexagram", "isfahan", Tiling.HEXAGON, PatternStyle.STRAPWORK, 120.0))
-        add(geo("geo-gold-lines", "Gold Leaf", "onyx", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.LINEWORK, 90.0, 66.0))
-        add(geo("geo-lapis-lines", "Lapis Lines", "lapis", Tiling.OCTAGON_SQUARE, PatternStyle.LINEWORK, 110.0, 70.0))
-        add(geo("geo-marrakesh", "Marrakesh", "alhambra", Tiling.DODECAGON_TRIANGLE, PatternStyle.ZELLIGE, 88.0, 75.0))
-        add(geo("geo-sand", "Desert Star", "sand", Tiling.SQUARE, PatternStyle.ZELLIGE, 200.0, 70.0))
+        add(geo("geo-khatam", "Hâtem", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, 230.0))
+        add(geo("geo-rub-el-hizb", "Rub-ül Hizb", "lapis", Tiling.OCTAGON_SQUARE, PatternStyle.STRAPWORK, 120.0))
+        add(geo("geo-fez", "Fes Çinisi", "iznik", Tiling.OCTAGON_SQUARE, PatternStyle.ZELLIGE, 105.0, 72.0))
+        add(geo("geo-shamsa", "Şemse", "amethyst", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, 95.0))
+        add(geo("geo-rosette", "On İki Kollu Gül", "alhambra", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.STRAPWORK, 82.0))
+        add(geo("geo-hexagram", "Altı Köşeli Yıldız", "isfahan", Tiling.HEXAGON, PatternStyle.STRAPWORK, 120.0))
+        add(geo("geo-gold-lines", "Altın Varak", "onyx", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.LINEWORK, 90.0, 66.0))
+        add(geo("geo-lapis-lines", "Lâcivert Çizgiler", "lapis", Tiling.OCTAGON_SQUARE, PatternStyle.LINEWORK, 110.0, 70.0))
+        add(geo("geo-marrakesh", "Marakeş", "alhambra", Tiling.DODECAGON_TRIANGLE, PatternStyle.ZELLIGE, 88.0, 75.0))
+        add(geo("geo-sand", "Çöl Yıldızı", "sand", Tiling.SQUARE, PatternStyle.ZELLIGE, 200.0, 70.0))
 
         // Calligraphy
         fun cal(
@@ -102,30 +102,30 @@ object Catalog {
         fun night(id: String, title: String, palette: String, a: NightArt.Architecture, sky: NightArt.Sky, water: Boolean, seed: Int) =
             Entry(id, title, Category.NIGHT, pal(palette), seed) { ctx -> NightArt.scene(ctx, NightArt.Params(a, sky, water)) }
 
-        add(night("night-istanbul", "Istanbul Night", "lapis", NightArt.Architecture.OTTOMAN, NightArt.Sky.NIGHT, true, 3))
-        add(night("night-isfahan", "Isfahan Dusk", "isfahan", NightArt.Architecture.PERSIAN, NightArt.Sky.DUSK, true, 5))
-        add(night("night-agra", "Agra Dawn", "amethyst", NightArt.Architecture.MOGHUL, NightArt.Sky.DAWN, true, 8))
-        add(night("night-desert", "Desert Mosque", "sand", NightArt.Architecture.OTTOMAN, NightArt.Sky.DUSK, false, 12))
-        add(night("night-emerald", "Emerald Night", "emerald", NightArt.Architecture.MOGHUL, NightArt.Sky.NIGHT, false, 2))
-        add(night("night-oled", "Midnight Minarets", "onyx", NightArt.Architecture.PERSIAN, NightArt.Sky.NIGHT, true, 4))
+        add(night("night-istanbul", "İstanbul Gecesi", "lapis", NightArt.Architecture.OTTOMAN, NightArt.Sky.NIGHT, true, 3))
+        add(night("night-isfahan", "İsfahan'da Akşam", "isfahan", NightArt.Architecture.PERSIAN, NightArt.Sky.DUSK, true, 5))
+        add(night("night-agra", "Agra'da Şafak", "amethyst", NightArt.Architecture.MOGHUL, NightArt.Sky.DAWN, true, 8))
+        add(night("night-desert", "Çöl Camisi", "sand", NightArt.Architecture.OTTOMAN, NightArt.Sky.DUSK, false, 12))
+        add(night("night-emerald", "Zümrüt Gece", "emerald", NightArt.Architecture.MOGHUL, NightArt.Sky.NIGHT, false, 2))
+        add(night("night-oled", "Gece Yarısı Minareleri", "onyx", NightArt.Architecture.PERSIAN, NightArt.Sky.NIGHT, true, 4))
 
         // Ramadan & Eid
         fun lantern(id: String, title: String, palette: String, phrase: Phrase, script: CalligraphyArt.Script, seed: Int) =
             Entry(id, title, Category.RAMADAN, pal(palette), seed) { ctx -> LanternArt.scene(ctx, LanternArt.Params(phrase, script)) }
 
-        add(lantern("ramadan-kareem", "Ramadan Kareem", "lapis", Phrases.RAMADAN, CalligraphyArt.Script.RUQAA, 1))
-        add(lantern("ramadan-amethyst", "Ramadan Lanterns", "amethyst", Phrases.RAMADAN, CalligraphyArt.Script.NASKH, 6))
-        add(lantern("eid-mubarak", "Eid Mubarak", "emerald", Phrases.EID, CalligraphyArt.Script.RUQAA, 3))
-        add(lantern("eid-rose", "Eid Rose", "isfahan", Phrases.EID, CalligraphyArt.Script.KUFI, 9))
+        add(lantern("ramadan-kareem", "Hayırlı Ramazanlar", "lapis", Phrases.RAMADAN, CalligraphyArt.Script.RUQAA, 1))
+        add(lantern("ramadan-amethyst", "Ramazan Fenerleri", "amethyst", Phrases.RAMADAN, CalligraphyArt.Script.NASKH, 6))
+        add(lantern("eid-mubarak", "Bayram Tebriği", "emerald", Phrases.EID, CalligraphyArt.Script.RUQAA, 3))
+        add(lantern("eid-rose", "Bayram Gülü", "isfahan", Phrases.EID, CalligraphyArt.Script.KUFI, 9))
 
         // Mihrab
         fun mihrab(id: String, title: String, palette: String, wall: Tiling, style: PatternStyle, niche: Tiling) =
             Entry(id, title, Category.MIHRAB, pal(palette)) { ctx -> MihrabArt.scene(ctx, MihrabArt.Params(wall, style, niche)) }
 
-        add(mihrab("mihrab-cordoba", "Cordoba", "alhambra", Tiling.OCTAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.DODECAGON_TRIANGLE))
-        add(mihrab("mihrab-iznik", "Iznik Tiles", "iznik", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.OCTAGON_SQUARE))
-        add(mihrab("mihrab-emerald", "Emerald Niche", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, Tiling.HEXAGON))
-        add(mihrab("mihrab-lapis", "Lapis Niche", "lapis", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, Tiling.DODECAGON_HEXAGON_SQUARE))
+        add(mihrab("mihrab-cordoba", "Kurtuba", "alhambra", Tiling.OCTAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.DODECAGON_TRIANGLE))
+        add(mihrab("mihrab-iznik", "İznik Çinileri", "iznik", Tiling.DODECAGON_HEXAGON_SQUARE, PatternStyle.ZELLIGE, Tiling.OCTAGON_SQUARE))
+        add(mihrab("mihrab-emerald", "Zümrüt Mihrap", "emerald", Tiling.SQUARE, PatternStyle.STRAPWORK, Tiling.HEXAGON))
+        add(mihrab("mihrab-lapis", "Lâcivert Mihrap", "lapis", Tiling.DODECAGON_TRIANGLE, PatternStyle.STRAPWORK, Tiling.DODECAGON_HEXAGON_SQUARE))
     }
 
     fun byId(id: String) = entries.firstOrNull { it.id == id }

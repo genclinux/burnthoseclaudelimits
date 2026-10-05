@@ -1,9 +1,15 @@
-# Noor · نور — Islamic wallpapers, made for Hanife Betül
+# Nur · نور — Islamic wallpapers, made for Hanife Betül
 
 An Android app that draws Islamic art on the device at its native resolution, so
 nothing is downloaded and nothing is upscaled. It is tuned for the
 **OPPO Find X9 Pro** (6.78" LTPO OLED, **1272 × 2772**, ColorOS 16 / Android 16)
 and works on any Android 10+ phone or **tablet**.
+
+The app is in **Turkish**, wallpaper captions included: category and design
+names, Turkish readings of each phrase (*Bismillâhirrahmânirrahîm*,
+*Elhamdülillah*…), and meanings with Turkish surah names (*İnşirah 94:6*). The
+Ramazan and Bayram scenes say *Hayırlı Ramazanlar* and *Bayramınız Mübarek
+Olsun*. The Arabic calligraphy stays Arabic.
 
 ![Gallery](docs/noor-gallery.jpg)
 
@@ -25,7 +31,7 @@ for her (in Turkish):
 - **Greetings** in the header: time-of-day greetings, Friday greetings (Hayırlı
   Cumalar), and Ramadan and Eid greetings worked out from the Hijri calendar.
 - **A welcome note** on first launch. A **✦ button** (or five taps on the
-  "Noor" title) opens a dedication page explaining what her names mean.
+  "Nur" title) opens a dedication page explaining what her names mean.
 - **Personal messages** when she sets a wallpaper, a compliment on every
   seventh shuffle, and a personal note when her favourites list is empty.
 
@@ -48,12 +54,13 @@ wallpaper redraws itself for each orientation.
 | **Geometric** | Star patterns built with Hankin's *polygons-in-contact* method over five tilings: Khatam, Rub el Hizb, Shamsa, twelvefold Rosette and Hexagram. Each comes in three styles: gold strapwork, Fez/Marrakesh zellige, and OLED-friendly gold linework. |
 | **Calligraphy** | Bismillah, Allah, Muhammad, SubhanAllah, Alhamdulillah, Allahu Akbar, the Tawhid, MashaAllah, and verses 94:6, 3:173, 2:152 and 57:4. Set in Naskh (Amiri), Ruqaa (Aref Ruqaa) and Kufi (Reem Kufi), each with a transliteration and its meaning. |
 | **Night Mosques** | Procedural Ottoman, Persian and Mughal mosque silhouettes under night, dusk or dawn skies. Lit windows, a crescent moon, and optional reflections in water. |
-| **Ramadan & Eid** | Hanging fanous lanterns, a crescent, and *Ramadan Kareem* / *Eid Mubarak* calligraphy. |
+| **Ramazan ve Bayram** | Hanging fanous lanterns, a crescent, and رمضان كريم / عيد مبارك calligraphy captioned *Hayırlı Ramazanlar* / *Bayramınız Mübarek Olsun*. |
 | **Mihrab** | A tiled wall with a gilded pointed arch, a Bismillah inscription and a glowing Mamluk glass lamp. |
 
-There are 44 designs, and each can use any of the **9 palettes**: Hanife Betül, Emerald & Gold,
-Midnight Lapis, Iznik Turquoise, Desert Sand, Isfahan Rose, Alhambra
-Terracotta, Onyx & Pearl (true black for OLED) and Royal Amethyst. **Shuffle**
+There are 44 designs, and each can use any of the **9 palettes**: Hanife Betül,
+Zümrüt ve Altın, Gece Lâciverdi, İznik Turkuazı, Çöl Kumu, İsfahan Gülü,
+Elhamra Kiremidi, Oniks ve İnci (true black for OLED) and Saray Ametisti.
+**Shuffle**
 re-seeds the design (moon position, lantern layout, mosque details and so on).
 
 On the detail screen you can:
@@ -62,7 +69,7 @@ On the detail screen you can:
   rendered at the exact panel size, so ColorOS doesn't crop or scroll it.
 - Pick **Live wallpaper** for the same design with slowly twinkling stars and a
   drifting band of light. It animates only while visible, at 20 fps.
-- **Save** a PNG to `Pictures/Noor` (no storage permission needed).
+- **Save** a PNG to `Pictures/Nur` (no storage permission needed).
 - Add designs to **Favourites**. Your palette and seed choices are remembered for
   each design.
 
@@ -74,7 +81,7 @@ debug key, so it installs directly:
 
 1. On the Find X9 Pro, open the APK and allow *Install unknown apps* for your
    browser or file manager when ColorOS asks.
-2. Open **Noor**, choose a design, then tap **Set wallpaper**.
+2. Open **Nur**, choose a design, then tap **Duvar kağıdı yap** (Set wallpaper).
 
 To build it yourself, use JDK 17 and the Android SDK (API 36):
 

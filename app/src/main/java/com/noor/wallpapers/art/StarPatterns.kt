@@ -34,11 +34,11 @@ class StarTile(val polygon: RegularPolygon, val star: List<Vec>) {
 }
 
 enum class Tiling(val label: String, val defaultContactDegrees: Double) {
-    SQUARE("Khatam", 67.5),
-    HEXAGON("Hexagram", 60.0),
-    OCTAGON_SQUARE("Rub el Hizb", 67.5),
-    DODECAGON_TRIANGLE("Shamsa", 72.0),
-    DODECAGON_HEXAGON_SQUARE("Rosette", 60.0),
+    SQUARE("Hâtem", 67.5),
+    HEXAGON("Altı Köşeli Yıldız", 60.0),
+    OCTAGON_SQUARE("Rub-ül Hizb", 67.5),
+    DODECAGON_TRIANGLE("Şemse", 72.0),
+    DODECAGON_HEXAGON_SQUARE("On İki Kollu Gül", 60.0),
 }
 
 object Tilings {

@@ -120,7 +120,7 @@ fun DetailScreen(
                 action(Wallpapers.renderWallpaper(context, sel))
                 snackbar.showSnackbar(done())
             } catch (e: Exception) {
-                snackbar.showSnackbar("Something went wrong: ${e.message ?: e.javaClass.simpleName}")
+                snackbar.showSnackbar("Bir şeyler ters gitti: ${e.message ?: e.javaClass.simpleName}")
             } finally {
                 busy = false
             }
@@ -152,7 +152,7 @@ fun DetailScreen(
                     .padding(horizontal = 8.dp, vertical = 8.dp),
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = Color.White)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White)
@@ -180,21 +180,21 @@ fun DetailScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 ) {
-                    RoundAction(Icons.Filled.Refresh, "Shuffle") {
+                    RoundAction(Icons.Filled.Refresh, "Karıştır") {
                         sel = sel.copy(seed = Random.nextInt(1, 100_000))
                         // Easter egg: every seventh shuffle earns a compliment.
                         if (++shuffles % 7 == 0) scope.launch { snackbar.showSnackbar(HanifeBetul.SHUFFLE_MESSAGE) }
                     }
-                    RoundAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Favourite", onToggleFavorite)
-                    RoundAction(Icons.Filled.KeyboardArrowDown, "Save to gallery") {
-                        act({ "Saved to Pictures/Noor ✨" }) { Wallpapers.saveToGallery(context, it, "noor-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
+                    RoundAction(if (favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, "Favori", onToggleFavorite)
+                    RoundAction(Icons.Filled.KeyboardArrowDown, "Galeriye kaydet") {
+                        act({ "Resimler/Nur klasörüne kaydedildi ✨" }) { Wallpapers.saveToGallery(context, it, "nur-${sel.entryId}-${sel.paletteId}-${sel.seed}") }
                     }
                     Button(
                         onClick = { sheet = true },
                         enabled = full != null && !busy && !rendering,
                         modifier = Modifier.weight(1f).height(52.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp),
-                    ) { Text("Set wallpaper") }
+                    ) { Text("Duvar kağıdı yap") }
                 }
             }
         }
@@ -206,25 +206,25 @@ fun DetailScreen(
         ModalBottomSheet(onDismissRequest = { sheet = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
             Column(Modifier.padding(bottom = 24.dp)) {
                 Text(
-                    "Apply to",
+                    "Nereye uygulansın?",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
-                SheetOption(Icons.Filled.Home, "Home screen") {
+                SheetOption(Icons.Filled.Home, "Ana ekran") {
                     sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.HOME) }
                 }
-                SheetOption(Icons.Filled.Lock, "Lock screen") {
+                SheetOption(Icons.Filled.Lock, "Kilit ekranı") {
                     sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.LOCK) }
                 }
-                SheetOption(Icons.Filled.Star, "Home and lock screens") {
+                SheetOption(Icons.Filled.Star, "Ana ekran ve kilit ekranı") {
                     sheet = false; act({ HanifeBetul.appliedMessages.random() }) { Wallpapers.apply(context, it, Target.BOTH) }
                 }
-                SheetOption(Icons.Filled.PlayArrow, "Live wallpaper (twinkling stars)") {
+                SheetOption(Icons.Filled.PlayArrow, "Canlı duvar kağıdı (parıldayan yıldızlar)") {
                     sheet = false
                     try {
                         context.startActivity(Wallpapers.liveWallpaperIntent(context, sel))
                     } catch (_: ActivityNotFoundException) {
-                        scope.launch { snackbar.showSnackbar("Live wallpapers aren't supported on this device") }
+                        scope.launch { snackbar.showSnackbar("Bu cihaz canlı duvar kağıdını desteklemiyor") }
                     }
                 }
             }

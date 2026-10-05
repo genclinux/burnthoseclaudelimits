@@ -2,7 +2,7 @@ package com.noor.wallpapers.art
 
 import kotlin.math.PI
 
-/** A phrase with full vocalisation for Naskh, a bare form for Kufi, and its meaning. */
+/** A phrase with full vocalisation for Naskh, a bare form for Kufi, its Turkish reading and its meaning. */
 class Phrase(
     val id: String,
     val arabic: String,
@@ -14,30 +14,30 @@ class Phrase(
 object Phrases {
     val BISMILLAH = Phrase(
         "bismillah", "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ", "بسم الله الرحمن الرحيم",
-        "Bismillāhir-Raḥmānir-Raḥīm", "In the name of God, the Most Gracious, the Most Merciful",
+        "Bismillâhirrahmânirrahîm", "Rahmân ve Rahîm olan Allah'ın adıyla",
     )
-    val ALLAH = Phrase("allah", "ٱللَّٰه", "الله", "Allāh", "God")
-    val MUHAMMAD = Phrase("muhammad", "مُحَمَّدٌ", "محمد", "Muḥammad", "Peace and blessings be upon him")
-    val SUBHANALLAH = Phrase("subhanallah", "سُبْحَانَ ٱللَّٰهِ", "سبحان الله", "Subḥān Allāh", "Glory be to God")
-    val ALHAMDULILLAH = Phrase("alhamdulillah", "ٱلْحَمْدُ لِلَّٰهِ", "الحمد لله", "Al-ḥamdu lillāh", "All praise is due to God")
-    val ALLAHU_AKBAR = Phrase("allahuakbar", "ٱللَّٰهُ أَكْبَرُ", "الله أكبر", "Allāhu akbar", "God is the Greatest")
-    val TAWHID = Phrase("tawhid", "لَا إِلَٰهَ إِلَّا ٱللَّٰهُ", "لا إله إلا الله", "Lā ilāha illā Allāh", "There is no god but God")
-    val MASHALLAH = Phrase("mashallah", "مَا شَاءَ ٱللَّٰهُ", "ما شاء الله", "Mā shā’ Allāh", "What God has willed")
+    val ALLAH = Phrase("allah", "ٱللَّٰه", "الله", "Allah", "Celle Celâlühû")
+    val MUHAMMAD = Phrase("muhammad", "مُحَمَّدٌ", "محمد", "Muhammed", "Sallallâhu aleyhi ve sellem")
+    val SUBHANALLAH = Phrase("subhanallah", "سُبْحَانَ ٱللَّٰهِ", "سبحان الله", "Sübhânallah", "Allah her türlü noksanlıktan münezzehtir")
+    val ALHAMDULILLAH = Phrase("alhamdulillah", "ٱلْحَمْدُ لِلَّٰهِ", "الحمد لله", "Elhamdülillah", "Hamd Allah'a mahsustur")
+    val ALLAHU_AKBAR = Phrase("allahuakbar", "ٱللَّٰهُ أَكْبَرُ", "الله أكبر", "Allahu Ekber", "Allah en büyüktür")
+    val TAWHID = Phrase("tawhid", "لَا إِلَٰهَ إِلَّا ٱللَّٰهُ", "لا إله إلا الله", "Lâ ilâhe illallah", "Allah'tan başka ilah yoktur")
+    val MASHALLAH = Phrase("mashallah", "مَا شَاءَ ٱللَّٰهُ", "ما شاء الله", "Mâşallah", "Allah'ın dilediği olur")
     val YUSRA = Phrase(
         "yusra", "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا", "إن مع العسر يسرا",
-        "Inna ma‘al-‘usri yusrā", "Indeed, with hardship comes ease · 94:6",
+        "İnne meal usri yüsrâ", "Şüphesiz zorlukla beraber bir kolaylık vardır · İnşirah 94:6",
     )
     val HASBUNALLAH = Phrase(
         "hasbunallah", "حَسْبُنَا ٱللَّٰهُ وَنِعْمَ ٱلْوَكِيلُ", "حسبنا الله ونعم الوكيل",
-        "Ḥasbunallāhu wa ni‘mal-wakīl", "God is sufficient for us, and He is the best Guardian · 3:173",
+        "Hasbünallâhu ve ni'mel vekîl", "Allah bize yeter, O ne güzel vekildir · Âl-i İmrân 3:173",
     )
     val DHIKR = Phrase(
         "dhikr", "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ", "فاذكروني أذكركم",
-        "Fadhkurūnī adhkurkum", "So remember Me; I will remember you · 2:152",
+        "Fezkürûnî ezkürküm", "Beni anın ki ben de sizi anayım · Bakara 2:152",
     )
     val MAAKUM = Phrase(
         "maakum", "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", "وهو معكم أين ما كنتم",
-        "Wa huwa ma‘akum ayna mā kuntum", "And He is with you wherever you are · 57:4",
+        "Ve hüve meaküm eyne mâ küntüm", "Nerede olursanız olun, O sizinle beraberdir · Hadîd 57:4",
     )
     // Hanife Betül's collection. Both of her names have roots in the Qur'an:
     // hanīf (upright, turning sincerely to God) and batūl (wholly devoted to God),
@@ -48,15 +48,15 @@ object Phrases {
     )
     val HANIF = Phrase(
         "hanif", "فَأَقِمْ وَجْهَكَ لِلدِّينِ حَنِيفًا", "فأقم وجهك للدين حنيفا",
-        "Fa-aqim wajhaka lid-dīni ḥanīfā", "Yüzünü hanîf olarak dine çevir · Rûm 30:30",
+        "Fe ekım vecheke lid-dîni hanîfâ", "Yüzünü hanîf olarak dine çevir · Rûm 30:30",
     )
     val TABATTAL = Phrase(
         "tabattal", "وَتَبَتَّلْ إِلَيْهِ تَبْتِيلًا", "وتبتل إليه تبتيلا",
-        "Wa tabattal ilayhi tabtīlā", "Bütün benliğinle O'na yönel · Müzzemmil 73:8",
+        "Ve tebettel ileyhi tebtîlâ", "Bütün benliğinle O'na yönel · Müzzemmil 73:8",
     )
-    val NUR = Phrase("nur", "نُور", "نور", "Nūr", "NUR İÇİNDE KAL, HANİFE BETÜL")
-    val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramaḍān Karīm", "Ramadan Kareem")
-    val EID = Phrase("eid", "عِيدٌ مُبَارَكٌ", "عيد مبارك", "‘Īd Mubārak", "Eid Mubarak")
+    val NUR = Phrase("nur", "نُور", "نور", "Nur", "NUR İÇİNDE KAL, HANİFE BETÜL")
+    val RAMADAN = Phrase("ramadan", "رَمَضَانُ كَرِيمٌ", "رمضان كريم", "Ramazan-ı Kerîm", "HAYIRLI RAMAZANLAR")
+    val EID = Phrase("eid", "عِيدٌ مُبَارَكٌ", "عيد مبارك", "Îd Mübârek", "BAYRAMINIZ MÜBAREK OLSUN")
 }
 
 object CalligraphyArt {
