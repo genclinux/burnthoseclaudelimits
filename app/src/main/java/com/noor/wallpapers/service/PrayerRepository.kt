@@ -9,6 +9,7 @@ import com.noor.wallpapers.prayer.PrayerCalculator
 import com.noor.wallpapers.prayer.PrayerLocation
 import com.noor.wallpapers.prayer.PrayerSchedule
 import com.noor.wallpapers.prayer.Provinces
+import com.noor.wallpapers.prayer.ReligiousDays
 import com.noor.wallpapers.prayer.ShiftedHijri
 import com.noor.wallpapers.prayer.TurkishText
 import kotlinx.coroutines.Dispatchers
@@ -119,6 +120,10 @@ object PrayerRepository {
     /** The Hijri calendar, moved by a day where Diyanet's table says it should be. */
     fun hijri(context: Context): HijriCalendar =
         schedule(context)?.let { ShiftedHijri.matching(IcuHijri, it.published) } ?: IcuHijri
+
+    /** Whether a kandil night begins on the evening of [date] (it runs on past midnight). */
+    fun isKandilEvening(context: Context, date: LocalDate): Boolean =
+        ReligiousDays.on(date, hijri(context)).any { it.day.night && it.date == date }
 
     /** Sets a new place; its table is fetched by [refresh]. */
     fun setLocation(context: Context, loc: PrayerLocation) {

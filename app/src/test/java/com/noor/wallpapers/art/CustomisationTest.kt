@@ -62,6 +62,17 @@ class CustomisationTest {
     }
 
     @Test
+    fun designsTheDayCycleUsesExist() {
+        // wallpaper/TimeOfDay.kt and the widget's default background refer to these by id.
+        for (id in listOf(
+            "suluboya-safak", "cini-vazo", "cini-lale", "hb-rosette", "suluboya-gun-batimi",
+            "suluboya-hilal", "suluboya-kandil", "hb-stars",
+        )) {
+            assertTrue(id, Catalog.byId(id) != null)
+        }
+    }
+
+    @Test
     fun dimDarkensTheWholeScene() {
         val e = Catalog.byId("geo-khatam")!!
         val plain = e.render(RenderContext(200, 400, e.defaultPalette, 1))

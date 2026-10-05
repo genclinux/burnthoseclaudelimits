@@ -131,9 +131,13 @@ fun PrayerScreen(
         if (schedule != null && PrayerRepository.needsRefresh(context)) refresh(force = false)
     }
 
-    val current = schedule?.current(now)?.prayer
+    val currentEvent = schedule?.current(now)
+    val current = currentEvent?.prayer
+    // A kandil night is dated by the evening it began, even after midnight.
+    val periodDate = currentEvent?.day?.date
+    val kandil = remember(periodDate) { periodDate != null && PrayerRepository.isKandilEvening(context, periodDate) }
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Backdrop(current)
+        Backdrop(current, kandil)
         if (schedule == null) {
             NoLocation(onPickLocation)
         } else {
@@ -145,10 +149,10 @@ fun PrayerScreen(
 
 /** The design for this part of the day, softly behind everything, fading as it changes. */
 @Composable
-private fun Backdrop(current: Prayer?) {
+private fun Backdrop(current: Prayer?, kandil: Boolean) {
     val context = LocalContext.current
     val viewport = rememberViewport()
-    val sel = remember(current) { TimeOfDay.selection(current) }
+    val sel = remember(current, kandil) { TimeOfDay.selection(current, kandil) }
     val size = IntSize(viewport.width / 3, viewport.height / 3)
     val bmp by produceState<ImageBitmap?>(Thumbnails.cached(sel, size)?.asImageBitmap(), sel, size) {
         value = Thumbnails.load(context, sel, size).asImageBitmap()

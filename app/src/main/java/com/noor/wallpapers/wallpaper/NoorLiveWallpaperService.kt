@@ -133,9 +133,10 @@ class NoorLiveWallpaperService : WallpaperService() {
         /** The design to show now: hers, or the one for this part of the day. */
         private fun selection(): Selection {
             if (!settings.liveFollowsPrayer) return prefs.liveSelection
-            val p = PrayerRepository.schedule(this@NoorLiveWallpaperService)?.current(Instant.now())?.prayer
-            period = p
-            return TimeOfDay.selection(p)
+            val ev = PrayerRepository.schedule(this@NoorLiveWallpaperService)?.current(Instant.now())
+            period = ev?.prayer
+            val kandil = ev != null && PrayerRepository.isKandilEvening(this@NoorLiveWallpaperService, ev.day.date)
+            return TimeOfDay.selection(ev?.prayer, kandil)
         }
 
         /** Runs on the render thread. */

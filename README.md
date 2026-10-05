@@ -38,7 +38,9 @@ Kıble, Zikir and Takvim.
   with the current one highlighted. The Hijri date, Diyanet's *kıble saati*, the
   next religious day and the monthly *İmsakiye*. A note of the day (a Qur'anic
   verse or a few words for her). Behind it all, a design that follows the time of
-  day: dawn at İmsak, İznik tiles in the morning, dusk at Akşam and stars at Yatsı.
+  day: a watercolour İstanbul dawn at İmsak, İznik tiles through the morning and
+  noon, sunset over the Golden Horn at Akşam and a crescent night at Yatsı. On a
+  kandil night the minarets are lit.
 - **Notifications.** Pick which times notify. A reminder can come 5 to 45 minutes
   before. During Ramadan, İmsak and Akşam notifications are worded for sahur and
   iftar. Kandil nights are greeted at Akşam and Bayrams at sunrise. Alarms are
@@ -136,11 +138,13 @@ wallpaper redraws itself for each orientation.
 | **Night Mosques** | Procedural Ottoman, Persian and Mughal mosque silhouettes under night, dusk or dawn skies. Lit windows, a crescent moon, and optional reflections in water. |
 | **Ramazan ve Bayram** | Hanging fanous lanterns, a crescent, and رمضان كريم / عيد مبارك calligraphy captioned *Hayırlı Ramazanlar* / *Bayramınız Mübarek Olsun*. |
 | **Mihrab** | A tiled wall with a gilded pointed arch, a Bismillah inscription and a glowing Mamluk glass lamp. |
-| **Ebru** | Turkish paper marbling (battal, gelgit, şal, taraklı, bülbül yuvası), simulated drop by drop and comb stroke by comb stroke. |
-| **Levha** | Calligraphy panels on aged ahar paper with gold cetvel rules, gilded corners, an ebru margin and a ح ب seal. |
+| **Ebru** | Turkish paper marbling, simulated the way a marbler works the tray: drops spreading on size water, then the stylus and comb. Battal, Gelgit, Şal, Taraklı and Bülbül yuvası, in hand-mixed pigment sets. |
+| **Levha** | Hat levhası: ink calligraphy on aged ahar paper with gold cetvel rules, gilded corner pieces, an ebru margin and a red seal with Hanife Betül's initials. Gold-on-black *zerendüd* in the Onyx palette. |
+| **Suluboya** | Watercolour İstanbul mosque paintings: dawn, sunset, crescent night, mist, rain, snow, tulips, and a Kandil night with lit minarets. |
+| **Çini** | Hand-painted İznik tiles: vase panels, tulip, carnation, saz and rumi repeats, with glaze, grout and imperfections. |
 | **Hanife Betül ♡** | Her name in Naskh, Rik'a and Kûfî, her two verses, the Nûr verse, her night, lantern, mihrab and rosette, *Kendi Sözün* for her own words, a birthday design, and one more that has to be found. |
 
-There are 77 designs (and one hidden), and each can use any of the **9 palettes** or one of hers: Hanife Betül,
+There are 93 designs (and one hidden), and each can use any of the **9 palettes** or one of hers: Hanife Betül,
 Zümrüt ve Altın, Gece Lâciverdi, İznik Turkuazı, Çöl Kumu, İsfahan Gülü,
 Elhamra Kiremidi, Oniks ve İnci (true black for OLED) and Saray Ametisti.
 **Shuffle**
