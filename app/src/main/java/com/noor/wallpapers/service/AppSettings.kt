@@ -205,5 +205,6 @@ class AppSettings(context: Context) {
 enum class DailySource(val title: String) {
     FAVORITES("Favorilerim"),
     HANIFE_BETUL("Hanife Betül koleksiyonu"),
+    PENDIK("Pendik"),
     ALL("Tüm tasarımlar"),
 }

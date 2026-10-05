@@ -247,8 +247,9 @@ private fun NoorApp(requestedTab: String?, onTabHandled: () -> Unit) {
                             Tab.GALLERY -> {
                                 val unlocked = settings.secretUnlocked
                                 val items = remember(category, favoritesOnly, favorites, customVersion, unlocked, version) {
+                                    val only = category
                                     Catalog.visible(unlocked)
-                                        .filter { category == null || it.category == category }
+                                        .filter { only == null || it.inCategory(only) }
                                         .filter { !favoritesOnly || it.id in favorites }
                                         .map { (prefs.customised(it.id) ?: Selection.of(it)) to it.title }
                                 }

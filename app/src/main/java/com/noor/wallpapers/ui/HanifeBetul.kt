@@ -206,6 +206,9 @@ object HanifeBetul {
         Note("Ebru gibi: her gün başka renkler, aynı güzellik.", null),
         Note("Sabah namazının huzuru bütün güne yetsin.", null),
         Note("İçinden geçen güzel şeyler bir gün dua olarak geri döner.", null),
+        Note("Pendik sahilinde akşam: güneş Adalar'ın arkasına inerken bir dua da senden.", null),
+        Note("Martılar vapurun peşinde, dualar senin peşinde. Hayırlı yolculuklar.", null),
+        Note("Kıble buradan 152 derece; kalbinse her yerden aynı yöne.", null),
     )
 
     fun noteOfTheDay(date: LocalDate = LocalDate.now()): Note {

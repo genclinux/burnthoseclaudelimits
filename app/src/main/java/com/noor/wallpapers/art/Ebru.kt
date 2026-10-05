@@ -138,6 +138,7 @@ object Ebru {
             "alhambra" -> c("#B5462A", "#2A6F5F", "#E0B85C", "#5E2215", "#EADCC0") to Colors.hex("#F0E5CF")
             "onyx" -> c("#E8E2D0", "#8C8778", "#C9A04A", "#3A3A3A", "#B9B2A0") to Colors.hex("#141414")
             "amethyst" -> c("#5B2A9A", "#B89BE6", "#E6C76E", "#2E1456", "#EDE4F5") to Colors.hex("#EFE9F2")
+            "marmara" -> c("#1F5A7A", "#5FA3C4", "#E07A5F", "#F2C9A0", "#0E2E44") to Colors.hex("#F2EBDD")
             else -> listOf(p.accentA, p.accentB, p.accentC, p.line, Colors.lighten(p.bgTop, 0.4f)) to Colors.lighten(p.bgTop, 0.6f)
         }
     }

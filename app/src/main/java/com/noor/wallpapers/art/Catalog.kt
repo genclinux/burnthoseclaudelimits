@@ -2,6 +2,7 @@ package com.noor.wallpapers.art
 
 enum class Category(val title: String, val arabic: String) {
     HANIFE_BETUL("Hanife Betül ♡", "حنيفة بتول"),
+    PENDIK("Pendik", "پندیك"),
     GEOMETRIC("Geometrik", "هندسة"),
     CALLIGRAPHY("Hat", "خط"),
     NIGHT("Gece Camileri", "ليل"),
@@ -27,8 +28,12 @@ class Entry(
     val secret: Boolean = false,
     /** Uses DesignOptions.text: the design is written in her own words. */
     val editableText: Boolean = false,
+    /** Other gallery tabs it also appears under (a Pendik watercolour is also a Suluboya). */
+    val alsoIn: Set<Category> = emptySet(),
     private val builder: (RenderContext) -> Scene,
 ) {
+    fun inCategory(c: Category) = category == c || c in alsoIn
+
     fun render(ctx: RenderContext): Scene {
         val scene = builder(ctx)
         val extra = SceneBuilder(ctx.width, ctx.height).apply {
@@ -154,6 +159,7 @@ object Catalog {
         addAll(LevhaArt.entries())
         addAll(SuluboyaArt.entries())
         addAll(CiniArt.entries())
+        addAll(PendikArt.entries())
     }
 
     private fun ebru(id: String, title: String, palette: String, style: Ebru.Style, seed: Int) =

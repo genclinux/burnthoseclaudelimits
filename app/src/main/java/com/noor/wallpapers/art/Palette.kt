@@ -70,6 +70,12 @@ data class Palette(
                 hex("#2E1456"), hex("#0B0319"), hex("#E6C76E"),
                 hex("#5B2A9A"), hex("#3B1A6E"), hex("#C9A7FF"), hex("#FFE7B0"),
             ),
+            /** Evening over the Marmara from Pendik's shore: sea blue, island dusk and ferry-light gold. */
+            Palette(
+                "marmara", "Marmara Akşamı",
+                hex("#1C4E6B"), hex("#071A26"), hex("#F2C9A0"),
+                hex("#2F7FA6"), hex("#E07A5F"), hex("#F4D6A0"), hex("#FFE3C2"),
+            ),
         )
 
         /** Built-in palettes by id; ids starting "c-" are her own and carry their colours. */

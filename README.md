@@ -18,8 +18,10 @@ Olsun*. The Arabic calligraphy stays Arabic.
 
 ## Every day: Vakitler, Kıble, Zikir, Takvim
 
-The app opens on **Vakitler**. Five tabs sit along the bottom: Vakitler, Galeri,
-Kıble, Zikir and Takvim.
+The app opens on **Galeri**, the wallpapers. Five tabs sit along the bottom:
+Galeri, Vakitler, Kıble, Zikir and Takvim. Out of the box everything is set for
+**Pendik, İstanbul**, with no location prompt; another place can be picked in
+*Ayarlar*.
 
 - **Prayer times from Diyanet.** These are T.C. Diyanet İşleri Başkanlığı's official
   tables, fetched through the public *ezanvakti* service, which republishes them
@@ -38,9 +40,9 @@ Kıble, Zikir and Takvim.
   with the current one highlighted. The Hijri date, Diyanet's *kıble saati*, the
   next religious day and the monthly *İmsakiye*. A note of the day (a Qur'anic
   verse or a few words for her). Behind it all, a design that follows the time of
-  day: a watercolour İstanbul dawn at İmsak, İznik tiles through the morning and
-  noon, sunset over the Golden Horn at Akşam and a crescent night at Yatsı. On a
-  kandil night the minarets are lit.
+  day: dawn over Pendik Marina at İmsak, İznik tiles through the morning and
+  noon, the sun setting behind the Princes' Islands at Akşam and Pendik's shore
+  by night at Yatsı. On a kandil night the minarets are lit.
 - **Notifications.** Pick which times notify. A reminder can come 5 to 45 minutes
   before. During Ramadan, İmsak and Akşam notifications are worded for sahur and
   iftar. Kandil nights are greeted at Akşam and Bayrams at sunrise. Alarms are
@@ -142,11 +144,13 @@ wallpaper redraws itself for each orientation.
 | **Levha** | Hat levhası: ink calligraphy on aged ahar paper with gold cetvel rules, gilded corner pieces, an ebru margin and a red seal with Hanife Betül's initials. Gold-on-black *zerendüd* in the Onyx palette. |
 | **Suluboya** | Watercolour İstanbul mosque paintings: dawn, sunset, crescent night, mist, rain, snow, tulips, and a Kandil night with lit minarets. |
 | **Çini** | Hand-painted İznik tiles: vase panels, tulip, carnation, saz and rumi repeats, with glaze, grout and imperfections. |
+| **Pendik** | Her home on the Marmara: the sun going down behind the Princes' Islands, dawn at Pendik Marina and the shore by night in watercolour, a ferry-and-gulls poster, Pendik from Aydos hill among the stone pines, a Ramadan *mahya* strung between the minarets (its words can be changed to hers), the qibla from Pendik (152°, 2,382 km), Rahmân 55:24 on ships as a levha, and Marmara ebru and çini. Each also appears in the tab for its kind of art, so every tab has a little Pendik in it. |
 | **Hanife Betül ♡** | Her name in Naskh, Rik'a and Kûfî, her two verses, the Nûr verse, her night, lantern, mihrab and rosette, *Kendi Sözün* for her own words, a birthday design, and one more that has to be found. |
 
-There are 93 designs (and one hidden), and each can use any of the **9 palettes** or one of hers: Hanife Betül,
+There are 103 designs (and one hidden), and each can use any of the **10 palettes** or one of hers: Hanife Betül,
 Zümrüt ve Altın, Gece Lâciverdi, İznik Turkuazı, Çöl Kumu, İsfahan Gülü,
-Elhamra Kiremidi, Oniks ve İnci (true black for OLED) and Saray Ametisti.
+Elhamra Kiremidi, Oniks ve İnci (true black for OLED), Saray Ametisti and
+Marmara Akşamı (sea blue and island-dusk coral).
 **Shuffle**
 re-seeds the design (moon position, lantern layout, mosque details and so on).
 

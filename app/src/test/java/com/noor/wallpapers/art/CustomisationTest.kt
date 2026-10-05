@@ -65,8 +65,8 @@ class CustomisationTest {
     fun designsTheDayCycleUsesExist() {
         // wallpaper/TimeOfDay.kt and the widget's default background refer to these by id.
         for (id in listOf(
-            "suluboya-safak", "cini-vazo", "cini-lale", "hb-rosette", "suluboya-gun-batimi",
-            "suluboya-hilal", "suluboya-kandil", "hb-stars",
+            "pendik-marina-safak", "cini-vazo", "cini-lale", "hb-rosette", "pendik-adalar-gun-batimi",
+            "pendik-sahil-gece", "suluboya-kandil", "hb-stars",
         )) {
             assertTrue(id, Catalog.byId(id) != null)
         }

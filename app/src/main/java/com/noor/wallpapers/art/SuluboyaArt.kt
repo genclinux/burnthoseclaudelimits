@@ -74,6 +74,8 @@ object SuluboyaArt {
             "onyx" -> k("#A3AAB1", "#353A41", "#D8CCAE", "#B7A6A3", "#8A7C6F", "#8C9489", "#7B8087", "#1C1E22", "#F8F6F1")
             // Dioxazine violet, lavender, Naples gold.
             "amethyst" -> k("#A29ACA", "#38286A", "#E8CB84", "#C78AB6", "#9B6F62", "#7D998A", "#7D6E9A", "#22173D", "#FAF6F6")
+            // Marmara evening: cerulean sea, Prussian blue, apricot, coral and island violet.
+            "marmara" -> k("#7FB2CC", "#1D4560", "#F1C08A", "#E0826A", "#A8644A", "#6E9878", "#7C7894", "#1A2638", "#FBF6EC")
             else -> Pigments(
                 Colors.lighten(p.accentA, 0.5f), p.bgTop, Colors.lighten(p.glow, 0.1f), p.accentC, p.accentB,
                 Colors.hex("#7B9876"), Colors.mix(p.bgTop, Colors.WHITE, 0.4f), p.bgBottom, Colors.hex("#FAF6EE"),
@@ -102,26 +104,26 @@ object SuluboyaArt {
 
 // =================================================================== engine
 
-private fun smooth(e0: Double, e1: Double, x: Double): Double {
+internal fun smooth(e0: Double, e1: Double, x: Double): Double {
     val t = ((x - e0) / (e1 - e0)).coerceIn(0.0, 1.0)
     return t * t * (3 - 2 * t)
 }
 
-private fun Path.moved(dx: Double, dy: Double): Path =
+internal fun Path.moved(dx: Double, dy: Double): Path =
     transformed { x, y -> (x + dx).toFloat() to (y + dy).toFloat() }
 
-private fun rectP(x0: Double, y0: Double, x1: Double, y1: Double) =
+internal fun rectP(x0: Double, y0: Double, x1: Double, y1: Double) =
     Path().rect(min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1))
 
 /** A wetter drop landing in a drying wash: pigment is pushed to a frilly rim. */
-private class Bloom(val x: Double, val y: Double, val r: Double, val strength: Double = 1.0)
+internal class Bloom(val x: Double, val y: Double, val r: Double, val strength: Double = 1.0)
 
 /**
  * Noise fields shared by every wash on a sheet of a given size: slow pigment
  * flow, edge raggedness, paper tooth and the painter's unpainted margin.
  * Computed once per canvas size and reused (thumbnails, re-renders).
  */
-private class SheetFields(val w: Int, val h: Int, sc: Double, u: Double) {
+internal class SheetFields(val w: Int, val h: Int, sc: Double, u: Double) {
     val n = w * h
     val flow = FloatArray(n)
     val flow2 = FloatArray(n)
@@ -175,7 +177,7 @@ private class SheetFields(val w: Int, val h: Int, sc: Double, u: Double) {
  * reduced resolution (watercolour is soft; it upscales invisibly). Each wash
  * adds density, so layered washes glaze like transparent pigment.
  */
-private class WetSheet(val ctx: RenderContext, val paper: Int, budget: Int = 880_000) {
+internal class WetSheet(val ctx: RenderContext, val paper: Int, budget: Int = 880_000) {
     val sc = max(1.0, sqrt(ctx.w * ctx.h / budget))
     val w = ceil(ctx.w / sc).toInt()
     val h = ceil(ctx.h / sc).toInt()
@@ -448,10 +450,10 @@ private class WetSheet(val ctx: RenderContext, val paper: Int, budget: Int = 880
 
 // =============================================================== the hand
 
-private const val GRAPHITE = 0xFF55535A.toInt()
+internal const val GRAPHITE = 0xFF55535A.toInt()
 
 /** Hand-drawn marks laid over the washes: graphite, brush line, birds, splatter. */
-private class Hand(val b: SceneBuilder, val ctx: RenderContext, val seed: Int) {
+internal class Hand(val b: SceneBuilder, val ctx: RenderContext, val seed: Int) {
     val u = ctx.u
     private var salt = seed * 31
 
@@ -569,14 +571,14 @@ private class Hand(val b: SceneBuilder, val ctx: RenderContext, val seed: Int) {
 
 // ============================================================== the mosque
 
-private class Minaret(val x: Double, val base: Double, val top: Double, val w: Double, val capBase: Double, val balconies: List<Double>)
+internal class Minaret(val x: Double, val base: Double, val top: Double, val w: Double, val capBase: Double, val balconies: List<Double>)
 
-private class Dome(val cx: Double, val base: Double, val r: Double, val h: Double) {
+internal class Dome(val cx: Double, val base: Double, val r: Double, val h: Double) {
     val path get() = Shapes.hemiDome(cx, base, r, h)
 }
 
 /** An Ottoman mosque in the manner of Süleymaniye, seen a little from one side. */
-private class Camii(
+internal class Camii(
     val body: Path, val parts: List<Path>, val domes: List<Dome>, val minarets: List<Minaret>,
     val windows: Path, val arcade: Path, val left: Double, val right: Double, val top: Double,
     val ground: Double, val hallTop: Double, val hallLeft: Double, val hallRight: Double, val s: Double,
@@ -586,7 +588,7 @@ private class Camii(
  * Builds the drawing. [s] is pixels per design unit, [flip] puts the
  * courtyard on the right, [plan] is 2 or 4 minarets.
  */
-private fun camii(cx: Double, ground: Double, s: Double, plan: Int, flip: Boolean, rnd: Random): Camii {
+internal fun camii(cx: Double, ground: Double, s: Double, plan: Int, flip: Boolean, rnd: Random): Camii {
     val dir = if (flip) -1.0 else 1.0
     fun X(o: Double) = cx + dir * o * s
     fun L(v: Double) = v * s

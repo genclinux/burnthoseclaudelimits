@@ -114,6 +114,7 @@ class DailyWallpaperWorker(context: Context, params: WorkerParameters) : Corouti
             DailySource.FAVORITES -> visible.filter { it.id in prefs.favorites }
                 .ifEmpty { visible.filter { it.category == Category.HANIFE_BETUL } }
             DailySource.HANIFE_BETUL -> visible.filter { it.category == Category.HANIFE_BETUL }
+            DailySource.PENDIK -> visible.filter { it.category == Category.PENDIK }
             DailySource.ALL -> visible
         }.filter { it.id != Catalog.BIRTHDAY }
         if (pool.isEmpty()) return null

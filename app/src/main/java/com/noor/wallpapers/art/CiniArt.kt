@@ -73,6 +73,8 @@ object CiniArt {
             "alhambra" -> g("#F4EAD7", "#29190F", "#295E6E", "#3C8B79", "#C2963C", "#B5462A", "#BDA98F", "#E8D5B8")
             "onyx" -> g("#F1EEE6", "#121212", "#26262A", "#7A8388", "#8C8778", "#A8812F", "#8F8B83", "#DCD5C8")
             "amethyst" -> g("#F5F2F7", "#211833", "#3C2572", "#8B6CC7", "#5E8C7A", "#B43F5E", "#B5AFBD", "#E2DAE6")
+            // Marmara: sea cobalt and turquoise with a coral red, like the evening water off Pendik.
+            "marmara" -> g("#F3F5F2", "#14232E", "#1F4E7A", "#3A9DB8", "#5E8F7A", "#D0644C", "#AEB4B5", "#E3DCCF")
             else -> Glaze(
                 Colors.lighten(p.line, 0.85f), Colors.darken(p.bgBottom, 0.3f), p.accentB, p.accentA,
                 Colors.mix(p.accentA, p.accentB, 0.5f), p.accentC, Colors.mix(p.bgTop, Colors.WHITE, 0.5f),
