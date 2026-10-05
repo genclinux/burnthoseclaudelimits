@@ -29,8 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -248,8 +248,7 @@ fun SettingsSheet(onPickLocation: () -> Unit, onThemeChanged: () -> Unit, onMess
                     val colors = if (p == null) listOf(Color(0xFF0D4633), Color(0xFFD9B54A), Color(0xFF02140E))
                     else listOf(Color(p.bgTop), Color(p.line), Color(p.bgBottom))
                     Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
+                        Modifier
                             .size(40.dp)
                             .border(BorderStroke(if (selected) 3.dp else 1.dp, if (selected) colors[1] else Color.White.copy(alpha = 0.3f)), CircleShape)
                             .padding(4.dp)

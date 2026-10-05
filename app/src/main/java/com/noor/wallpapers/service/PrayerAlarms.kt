@@ -64,12 +64,16 @@ object PrayerAlarms {
         val s = AppSettings(context)
         val next = Triggers.next(schedule, Instant.now(), s.reminderMinutes, s.notifyPrayers) ?: return
         val at = next.at.toEpochMilli()
-        if (s.notificationsOn && canExact(context)) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
-        } else {
-            // Without exact alarms (or with notifications off, when only the widget needs it) a little lateness is fine.
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        try {
+            if (s.notificationsOn && canExact(context)) {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+                return
+            }
+        } catch (_: SecurityException) {
+            // The exact-alarm permission was withdrawn a moment ago; fall through to an inexact one.
         }
+        // Without exact alarms (or with notifications off, when only the widget needs it) a little lateness is fine.
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
     }
 
     /** Runs on a background thread when the alarm fires. */

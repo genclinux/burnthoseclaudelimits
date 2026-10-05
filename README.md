@@ -1,7 +1,10 @@
-# HBSnoor — Islamic wallpapers, made for Hanife Betül
+# HBSnoor — Islamic wallpapers and prayer times, made for Hanife Betül
 
 An Android app that draws Islamic art on the device at its native resolution, so
-nothing is downloaded and nothing is upscaled. It is tuned for the
+no artwork is downloaded and nothing is upscaled. It is also a daily companion:
+**Diyanet's prayer times** with notifications, a home-screen widget and the
+times on the live wallpaper, a **qibla compass**, a **tesbih counter** and a
+**Hijri calendar** of religious days. It is tuned for the
 **OPPO Find X9 Pro** (6.78" LTPO OLED, **1272 × 2772**, ColorOS 16 / Android 16)
 and works on any Android 10+ phone or **tablet**.
 
@@ -12,6 +15,67 @@ Ramazan and Bayram scenes say *Hayırlı Ramazanlar* and *Bayramınız Mübarek
 Olsun*. The Arabic calligraphy stays Arabic.
 
 ![Gallery](docs/noor-gallery.jpg)
+
+## Every day: Vakitler, Kıble, Zikir, Takvim
+
+The app opens on **Vakitler**. Five tabs sit along the bottom: Vakitler, Galeri,
+Kıble, Zikir and Takvim.
+
+- **Prayer times from Diyanet.** These are T.C. Diyanet İşleri Başkanlığı's official
+  tables, fetched through the public *ezanvakti* service, which republishes them
+  as JSON. Pick a country, city and district from Diyanet's own lists, or tap
+  *Konumumu bul*: the app takes a coarse location fix, reverse-geocodes it and
+  selects your district in Diyanet's list.
+  Each table covers about a month and is cached on the device, with a background
+  refresh before it runs out.
+- **Works offline.** With no internet, pick one of the 81 provinces and the times
+  are calculated with Diyanet's method: İmsak at 18° below the horizon, Yatsı at
+  17°, and Diyanet's temkin margins (Güneş −7, Öğle +5, İkindi +4, Akşam +7
+  minutes). Once Diyanet's own table has been seen, the calculation is
+  calibrated against it, so any days beyond the cached table still match
+  Diyanet's numbers closely. The screen always says which source it is showing.
+- **The Vakitler screen.** A ticking countdown to the next time. Today's six times
+  with the current one highlighted. The Hijri date, Diyanet's *kıble saati*, the
+  next religious day and the monthly *İmsakiye*. A note of the day (a Qur'anic
+  verse or a few words for her). Behind it all, a design that follows the time of
+  day: dawn at İmsak, İznik tiles in the morning, dusk at Akşam and stars at Yatsı.
+- **Notifications.** Pick which times notify. A reminder can come 5 to 45 minutes
+  before. During Ramadan, İmsak and Akşam notifications are worded for sahur and
+  iftar. Kandil nights are greeted at Akşam and Bayrams at sunrise. Alarms are
+  exact when Android allows, and they are set up again after a restart or a
+  clock change.
+- **Home-screen widget.** Shows the next time with a live countdown and all six
+  times, drawn over any design: choose *Vakit widget'ının arka planı* when you
+  apply a design.
+- **On the live wallpaper.** An optional gilded panel shows the next time, or all
+  six. Turn on *Vakte göre değişen tasarım* and the wallpaper changes design from
+  dawn to night.
+- **Kıble.** A compass corrected for magnetic declination, with the Kaaba on the
+  dial. It shows the distance to Mecca and the kıble saati for days the compass
+  is unreliable.
+- **Zikir.** A tesbih counter with post-prayer *tesbihat* (33 × 3, then the closing
+  tevhid) and other dhikr. Each count gives a light tick, and a round's end a
+  stronger one. The volume keys count too.
+- **Takvim.** A month grid with each Hijri day under its date, and Diyanet's
+  religious days for the year ahead: the three months, Regaib, Miraç, Berat,
+  Ramadan, Kadir, the two Bayrams with their arefe, the Hijri new year, Aşure
+  and Mevlid. The Hijri calendar is Umm al-Qura, nudged by a day where needed to
+  agree with the Hijri dates in Diyanet's table.
+
+## Make it yours
+
+- **Your own palette.** In any design, tap **+** in the palette row and pick a
+  background, an ornament (gold) and an accent, or tap *Zar at* for a random
+  harmony. The design behind the sheet redraws as you pick. Saved palettes work
+  on every design.
+- **Ayarla** (✎). Show or hide the Turkish reading and meaning under the
+  calligraphy, change how much paper texture shows, and darken the wallpaper
+  for legibility or for an OLED screen.
+- **Kendi Sözün.** Write your own words and the app sets them in Amiri on a
+  levha, with an ebru margin, gilded corners and the ح ب seal.
+- **App colours.** Choose any palette, including your own, in *Ayarlar*.
+- **A new wallpaper every day.** It is picked from your favourites, her
+  collection or everything, with a fresh arrangement each day.
 
 ## For Hanife Betül
 
@@ -34,6 +98,20 @@ for her (in Turkish):
   "HBSnoor" title) opens a dedication page explaining what her names mean.
 - **Personal messages** when she sets a wallpaper, a compliment on every
   seventh shuffle, and a personal note when her favourites list is empty.
+- **Her page (✦).** It shows what her names mean and their *ebced* (abjad) value:
+  حنيفة 153 + بتول 438 = **591**. She can save her birthday there. It also keeps a
+  tracker of **17 surprises**, with a hint for each one not found yet.
+- **Her birthday.** The app greets her that day. The daily wallpaper becomes the
+  *Doğum Günün* design, and rose petals fall on the live wallpaper.
+- **A secret design.** Count to 591 on the tesbih and the gallery opens
+  *Lâle · Hilâl · Allah*: an İznik tulip under a crescent, with الله above. In
+  Ottoman letters لاله, هلال and الله use the same letters, so each is worth 66.
+- **Touch the live wallpaper** and a star shoots from your fingertip.
+- **More of her collection.** Her own words (*Kendi Sözün*), her name in Rik'a and
+  Kûfî, and the Nûr verse (24:35), the *noor* in HBSnoor.
+- **Long-press ✦** to paint the whole app in her rose-gold and teal.
+- **Personal lines** in notifications, the qibla compass and the tesbih (153, 438,
+  591 and 99 each have a message).
 
 ## Phones and tablets
 
@@ -58,8 +136,11 @@ wallpaper redraws itself for each orientation.
 | **Night Mosques** | Procedural Ottoman, Persian and Mughal mosque silhouettes under night, dusk or dawn skies. Lit windows, a crescent moon, and optional reflections in water. |
 | **Ramazan ve Bayram** | Hanging fanous lanterns, a crescent, and رمضان كريم / عيد مبارك calligraphy captioned *Hayırlı Ramazanlar* / *Bayramınız Mübarek Olsun*. |
 | **Mihrab** | A tiled wall with a gilded pointed arch, a Bismillah inscription and a glowing Mamluk glass lamp. |
+| **Ebru** | Turkish paper marbling (battal, gelgit, şal, taraklı, bülbül yuvası), simulated drop by drop and comb stroke by comb stroke. |
+| **Levha** | Calligraphy panels on aged ahar paper with gold cetvel rules, gilded corners, an ebru margin and a ح ب seal. |
+| **Hanife Betül ♡** | Her name in Naskh, Rik'a and Kûfî, her two verses, the Nûr verse, her night, lantern, mihrab and rosette, *Kendi Sözün* for her own words, a birthday design, and one more that has to be found. |
 
-There are 44 designs, and each can use any of the **9 palettes**: Hanife Betül,
+There are 77 designs (and one hidden), and each can use any of the **9 palettes** or one of hers: Hanife Betül,
 Zümrüt ve Altın, Gece Lâciverdi, İznik Turkuazı, Çöl Kumu, İsfahan Gülü,
 Elhamra Kiremidi, Oniks ve İnci (true black for OLED) and Saray Ametisti.
 **Shuffle**
@@ -100,13 +181,18 @@ To build it yourself, use JDK 17 and the Android SDK (API 36):
 
 ```bash
 ./gradlew assembleRelease   # app/build/outputs/apk/release/app-release.apk
-./gradlew testDebugUnitTest # geometry engine tests
+./gradlew testDebugUnitTest # geometry, prayer-time and customisation tests
 ```
 
 ## How it works
 
 ```
 app/src/main/java/com/noor/wallpapers/
+├── prayer/       Pure Kotlin prayer times: Diyanet parsing, Diyanet-method calculator
+│                 with calibration, schedule and alarm triggers, qibla, provinces,
+│                 religious days, the live-wallpaper prayer panel
+├── service/      Android: Diyanet HTTP + cache, settings, exact alarms, notifications,
+│                 widget, WorkManager jobs, location
 ├── art/          Pure Kotlin scene engine (no Android imports)
 │   ├── StarPatterns.kt   tilings + Hankin construction
 │   ├── GeometricArt.kt   strapwork / zellige / linework styles
@@ -141,3 +227,9 @@ are in `app/src/main/assets/fonts/`:
 - [Reem Kufi](https://github.com/aliftype/reem-kufi)
 
 The app generates all the artwork itself. It contains no third-party images.
+
+Prayer times are T.C. Diyanet İşleri Başkanlığı's, retrieved through the public
+ezanvakti service. The offline calculation uses the solar model from
+PrayTimes.org with Diyanet's parameters; its tests compare it against the NOAA
+algorithms (via the Python `astral` package). The religious-day rules are tested
+against Diyanet's published 2025 calendar.
